@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Documents - School Portal{% endblock %}
+
+{% block content %}
+<section class="form-section">
+    <div class="container">
+        <div class="form-header">
+            <h1><i class="fas fa-cloud-upload-alt"></i> Upload Required Documents</h1>
+            <p>Application ID: <strong>{{ application.application_id }}</strong></p>
+            <p>Learner: <strong>{{ application.learner_name }}</strong></p>
+        </div>
+
+        <div class="upload-status">
+            <h3>Document Checklist</h3>
+            <div class="checklist">
+                <div class="checklist-item {% if 'birth_certificate' in uploaded_documents|yesno:'done,pending'|cut:'True' %}
+                    {% for doc in uploaded_documents %}{% if doc.document_type == 'birth_certificate' %}done{% endif %}{% endfor %}{% else %}pending{% endif %}">
+                    <i class="fas fa-{% for doc in uploaded_documents %}{% if doc.document_type == 'birth_certificate' %}check-circle{% endif %}{% empty %}clock{% endfor %}"></i>
+                    <span>Birth Certificate (Required)</span>
+                </div>
+                <div class="checklist-item">
+                    <i class="fas fa-{% for doc in uploaded_documents %}{% if doc.document_type == 'previous_report' %}check-circle{% endif %}{% empty %}clock{% endfor %}"></i>
+                    <span>Previous Year Progress Report (Required)</span>
+                </div>
+                <div class="checklist-item">
+                    <i class="fas fa-{% for doc in uploaded_documents %}{% if doc.document_type == 'id_document' %}check-circle{% endif %}{% empty %}clock{% endfor %}"></i>
+                    <span>ID/Passport Document</span>
+                </div>
+                <div class="checklist-item">
+                    <i class="fas fa-{% for doc in uploaded_documents %}{% if doc.document_type == 'proof_residence' %}check-circle{% endif %}{% empty %}clock{% endfor %}"></i>
+                    <span>Proof of Residence</span>
+                </div>
+            </div>
+        </div>
+
+        {% if uploaded_documents %}
+        <div class="uploaded-documents">
+            <h3>Uploaded Documents</h3>
+            <table class="documents-table">
+                <thead>
+                    <tr>
+                        <th>Document Type</th>
+                        <th>File Name</th>
+                        <th>Upload Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in uploaded_documents %}
+                    <tr>
+                        <td>{{ doc.get_document_type_display }}</td>
+                        <td>{{ doc.filename }}</td>
+                        <td>{{ doc.uploaded_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            {% if doc.verified %}
+                                <span class="badge badge-success"><i class="fas fa-check"></i> Verified</span>
+                            {% else %}
+                                <span class="badge badge-warning"><i class="fas fa-clock"></i> Pending Verification</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            
+            <div class="form-section-header">
+                <h3>Upload New Document</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.document_type.id_for_label }}">{{ form.document_type.label }} *</label>
+                    {{ form.document_type }}
+                    {% if form.document_type.errors %}
+                        <span class="error">{{ form.document_type.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.file.id_for_label }}">{{ form.file.label }} *</label>
+                    {{ form.file }}
+                    <small class="help-text">Accepted formats: PDF, JPG, JPEG, PNG (Max 5MB)</small>
+                    {% if form.file.errors %}
+                        <span class="error">{{ form.file.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> Upload Document
+                </button>
+                <a href="{% url 'admission_status_check' %}" class="btn btn-secondary">
+                    <i class="fas fa-search"></i> Check Status
+                </a>
+                <a href="{% url 'home' %}" class="btn btn-outline">Back to Home</a>
+            </div>
+        </form>
+
+        <div class="upload-info">
+            <div class="info-box">
+                <h4><i class="fas fa-info-circle"></i> Important Notes</h4>
+                <ul>
+                    <li>All uploaded documents will be verified by the school administration.</li>
+                    <li>Please ensure documents are clear and legible.</li>
+                    <li>You can upload multiple documents one at a time.</li>
+                    <li>Keep your Application ID safe: <strong>{{ application.application_id }}</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

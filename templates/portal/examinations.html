@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Examinations - {{ learner.full_name }}{% endblock %}
+
+{% block content %}
+<!-- iEnabler Toggle Menu -->
+<div class="ienabler-toggle" id="ienablerToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+<!-- iEnabler Sidebar -->
+<div class="ienabler-sidebar" id="ienablerSidebar">
+    <div class="ienabler-header">
+        <h3><i class="fas fa-bars"></i> Learner iEnabler</h3>
+        <button class="close-sidebar" id="closeSidebar">&times;</button>
+    </div>
+    <nav class="ienabler-nav">
+        <a href="{% url 'learner_dashboard' %}">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'academic_application' %}">
+            <i class="fas fa-file-alt"></i> Academic Application
+        </a>
+        <a href="{% url 'examinations' %}" class="active">
+            <i class="fas fa-clipboard-list"></i> Examinations
+        </a>
+        <a href="{% url 'academic_registration' %}">
+            <i class="fas fa-user-check"></i> Academic Registration
+        </a>
+        <a href="{% url 'student_enquiry' %}">
+            <i class="fas fa-question-circle"></i> Student Enquiry
+        </a>
+        <a href="{% url 'learner_logout' %}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<section class="dashboard-section">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-clipboard-list"></i> Examination Records</h1>
+            <p>View all examinations and assessments taken since joining the school</p>
+        </div>
+
+        <!-- Statistics Summary -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <i class="fas fa-clipboard-check"></i>
+                <div class="stat-info">
+                    <span class="stat-value">{{ total_exams }}</span>
+                    <span class="stat-label">Total Exams</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-chart-line"></i>
+                <div class="stat-info">
+                    <span class="stat-value">{{ overall_average|default:"N/A"|floatformat:1 }}%</span>
+                    <span class="stat-label">Overall Average</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-calendar-alt"></i>
+                <div class="stat-info">
+                    <span class="stat-value">{{ exam_data.keys|length }}</span>
+                    <span class="stat-label">Years Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examination Records by Year and Term -->
+        {% if exam_data %}
+            {% for year, terms in exam_data.items %}
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-calendar"></i> Academic Year {{ year }}</h2>
+                </div>
+                <div class="card-body">
+                    {% for term, exams in terms.items %}
+                    <div class="term-section">
+                        <h3 class="term-title">Term {{ term }}</h3>
+                        <table class="exams-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Exam Type</th>
+                                    <th>Marks (%)</th>
+                                    <th>Grade</th>
+                                    <th>Date</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exam in exams %}
+                                <tr>
+                                    <td><strong>{{ exam.subject }}</strong></td>
+                                    <td>{{ exam.get_exam_type_display }}</td>
+                                    <td>
+                                        <div class="marks-bar" data-marks="{{ exam.marks }}" data-grade="{{ exam.grade|lower }}">
+                                            <div class="marks-fill marks-fill-{{ exam.grade|lower }} js-marks-bar"></div>
+                                            <span>{{ exam.marks }}%</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="grade-badge grade-{{ exam.grade }}">{{ exam.grade }}</span></td>
+                                    <td>{{ exam.date_taken|date:"M d, Y" }}</td>
+                                    <td>{{ exam.teacher_remarks|default:"-"|truncatewords:5 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        
+                        <!-- Term Summary -->
+                        <div class="term-summary">
+                            {% with term_exams=exams %}
+                            <div class="summary-item">
+                                <span>Term Average:</span>
+                                <strong>{{ exams|get_average|floatformat:1 }}%</strong>
+                            </div>
+                            <div class="summary-item">
+                                <span>Highest:</span>
+                                <strong>{{ exams|get_highest_marks|floatformat:1 }}%</strong>
+                            </div>
+                            <div class="summary-item">
+                                <span>Lowest:</span>
+                                <strong>{{ exams|get_lowest_marks|floatformat:1 }}%</strong>
+                            </div>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="dashboard-card">
+            <div class="card-body">
+                <div class="empty-state">
+                    <i class="fas fa-clipboard"></i>
+                    <h3>No Examination Records</h3>
+                    <p>You have no examination records yet. Records will appear here once you start taking assessments.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // iEnabler Sidebar Toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('ienablerToggle');
+        const sidebar = document.getElementById('ienablerSidebar');
+        const closeBtn = document.getElementById('closeSidebar');
+        const overlay = document.getElementById('overlay');
+        
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        toggle.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+    });
+</script>
+{% endblock %}

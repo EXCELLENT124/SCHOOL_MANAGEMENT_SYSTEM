@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply for Admission - School Portal{% endblock %}
+
+{% block content %}
+<section class="form-section">
+    <div class="container">
+        <div class="form-header">
+            <h1><i class="fas fa-user-plus"></i> Apply for Admission</h1>
+            <p>Please fill in all the required information below. Fields marked with * are mandatory.</p>
+        </div>
+
+        <form method="post" class="admission-form">
+            {% csrf_token %}
+            
+            <div class="form-section-header">
+                <h3><i class="fas fa-user"></i> Learner Information</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.learner_name.id_for_label }}">{{ form.learner_name.label }} *</label>
+                    {{ form.learner_name }}
+                    {% if form.learner_name.errors %}
+                        <span class="error">{{ form.learner_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.date_of_birth.id_for_label }}">{{ form.date_of_birth.label }} *</label>
+                    {{ form.date_of_birth }}
+                    {% if form.date_of_birth.errors %}
+                        <span class="error">{{ form.date_of_birth.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.gender.id_for_label }}">{{ form.gender.label }} *</label>
+                    {{ form.gender }}
+                    {% if form.gender.errors %}
+                        <span class="error">{{ form.gender.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.grade_applying.id_for_label }}">{{ form.grade_applying.label }} *</label>
+                    {{ form.grade_applying }}
+                    {% if form.grade_applying.errors %}
+                        <span class="error">{{ form.grade_applying.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.previous_school.id_for_label }}">{{ form.previous_school.label }}</label>
+                    {{ form.previous_school }}
+                    {% if form.previous_school.errors %}
+                        <span class="error">{{ form.previous_school.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.previous_grade.id_for_label }}">{{ form.previous_grade.label }}</label>
+                    {{ form.previous_grade }}
+                    {% if form.previous_grade.errors %}
+                        <span class="error">{{ form.previous_grade.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-section-header">
+                <h3><i class="fas fa-users"></i> Parent/Guardian Information</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="{{ form.parent_name.id_for_label }}">{{ form.parent_name.label }} *</label>
+                    {{ form.parent_name }}
+                    {% if form.parent_name.errors %}
+                        <span class="error">{{ form.parent_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.parent_email.id_for_label }}">{{ form.parent_email.label }} *</label>
+                    {{ form.parent_email }}
+                    {% if form.parent_email.errors %}
+                        <span class="error">{{ form.parent_email.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.parent_phone.id_for_label }}">{{ form.parent_phone.label }} *</label>
+                    {{ form.parent_phone }}
+                    {% if form.parent_phone.errors %}
+                        <span class="error">{{ form.parent_phone.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="{{ form.parent_address.id_for_label }}">{{ form.parent_address.label }} *</label>
+                    {{ form.parent_address }}
+                    {% if form.parent_address.errors %}
+                        <span class="error">{{ form.parent_address.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-section-header">
+                <h3><i class="fas fa-phone-alt"></i> Emergency Contact</h3>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.emergency_contact_name.id_for_label }}">{{ form.emergency_contact_name.label }} *</label>
+                    {{ form.emergency_contact_name }}
+                    {% if form.emergency_contact_name.errors %}
+                        <span class="error">{{ form.emergency_contact_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.emergency_contact.id_for_label }}">{{ form.emergency_contact.label }} *</label>
+                    {{ form.emergency_contact }}
+                    {% if form.emergency_contact.errors %}
+                        <span class="error">{{ form.emergency_contact.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large">
+                    <i class="fas fa-paper-plane"></i> Submit Application
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+        
+        <div class="form-info">
+            <h4>Required Documents</h4>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> Birth Certificate (mandatory)</li>
+                <li><i class="fas fa-check-circle"></i> Previous Year Progress Report (mandatory)</li>
+                <li><i class="fas fa-check-circle"></i> ID/Passport Document</li>
+                <li><i class="fas fa-check-circle"></i> Proof of Residence</li>
+                <li><i class="fas fa-check-circle"></i> Immunization Records</li>
+            </ul>
+            <p class="note">You will be able to upload these documents after submitting the application form.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

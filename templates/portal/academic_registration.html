@@ -1,0 +1,521 @@
+{% extends 'base.html' %}
+
+{% block title %}Academic Registration - {{ learner.full_name }}{% endblock %}
+
+{% block content %}
+<!-- iEnabler Toggle Menu -->
+<div class="ienabler-toggle" id="ienablerToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+<!-- iEnabler Sidebar -->
+<div class="ienabler-sidebar" id="ienablerSidebar">
+    <div class="ienabler-header">
+        <h3><i class="fas fa-bars"></i> Learner iEnabler</h3>
+        <button class="close-sidebar" id="closeSidebar">&times;</button>
+    </div>
+    <nav class="ienabler-nav">
+        <a href="{% url 'learner_dashboard' %}">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'academic_application' %}">
+            <i class="fas fa-file-alt"></i> Academic Application
+        </a>
+        <a href="{% url 'examinations' %}">
+            <i class="fas fa-clipboard-list"></i> Examinations
+        </a>
+        <a href="{% url 'academic_registration' %}" class="active">
+            <i class="fas fa-user-check"></i> Academic Registration
+        </a>
+        <a href="{% url 'student_enquiry' %}">
+            <i class="fas fa-question-circle"></i> Student Enquiry
+        </a>
+        <a href="{% url 'learner_logout' %}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<section class="dashboard-section">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-user-check"></i> Academic Registration</h1>
+            <p>Complete your academic registration, choose your stream, and view fee information</p>
+        </div>
+
+        {% if not can_register %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>You are not eligible to complete academic registration yet. Please wait for your application to be accepted.</p>
+            <a href="{% url 'academic_application' %}" class="btn btn-primary">View Application Status</a>
+        </div>
+        {% endif %}
+
+        <!-- Rules and Regulations -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2><i class="fas fa-gavel"></i> Rules and Regulations</h2>
+            </div>
+            <div class="card-body">
+                <div class="rules-content">
+                    <h4>School Rules and Regulations</h4>
+                    <p>Please read and accept the following rules and regulations before completing your registration:</p>
+                    
+                    <div class="rules-list">
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Students must attend all classes regularly and punctually.</p>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>All assignments and homework must be submitted on time.</p>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>School uniform must be worn at all times during school hours.</p>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Respect for teachers, staff, and fellow students is mandatory.</p>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No mobile phones or electronic devices during class hours.</p>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>All school fees must be paid according to the payment schedule.</p>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Students must maintain a minimum average of 50% to continue.</p>
+                        </div>
+                        <div class="rule-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Any misconduct may result in suspension or expulsion.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if can_register %}
+        <!-- Stream Selection -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2><i class="fas fa-route"></i> Choose Your Stream</h2>
+            </div>
+            <div class="card-body">
+                <div class="streams-grid">
+                    {% for stream in streams %}
+                    <div class="stream-card {% if registration.stream.id == stream.id %}selected{% endif %}">
+                        <div class="stream-icon">
+                            {% if stream.code == 'science' %}
+                                <i class="fas fa-flask"></i>
+                            {% elif stream.code == 'commercial' %}
+                                <i class="fas fa-chart-line"></i>
+                            {% else %}
+                                <i class="fas fa-book"></i>
+                            {% endif %}
+                        </div>
+                        <h4>{{ stream.name }}</h4>
+                        <p class="stream-code">Code: {{ stream.code|upper }}</p>
+                        <p class="stream-description">{{ stream.description }}</p>
+                        <div class="stream-subjects">
+                            <h5>Main Subjects:</h5>
+                            <p>{{ stream.subjects }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <form method="post" class="registration-form" id="registrationForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.stream.id_for_label }}">{{ form.stream.label }} *</label>
+                        {{ form.stream }}
+                        {% if form.stream.errors %}
+                            <span class="error">{{ form.stream.errors.0 }}</span>
+                        {% endif %}
+                        <small class="help-text">Select a stream to see available subjects</small>
+                    </div>
+                    
+                    <!-- Subject Selection Section -->
+                    <div class="form-group subjects-section" id="subjectsSection">
+                        <label>{{ form.selected_subjects.label }} *</label>
+                        <small class="help-text">{{ form.selected_subjects.help_text }}</small>
+                        
+                        <div class="subjects-grid" id="subjectsContainer">
+                            {% for value, label in form.selected_subjects.field.choices %}
+                            <div class="subject-checkbox">
+                                <input type="checkbox" 
+                                       name="selected_subjects" 
+                                       id="subject_{{ forloop.counter }}" 
+                                       value="{{ value }}"
+                                       {% if value in form.selected_subjects.value %}checked{% endif %}>
+                                <label for="subject_{{ forloop.counter }}">{{ label }}</label>
+                            </div>
+                            {% empty %}
+                            <p class="no-stream-selected">Please select a stream above to see available subjects.</p>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if form.selected_subjects.errors %}
+                            <span class="error">{{ form.selected_subjects.errors.0 }}</span>
+                        {% endif %}
+                        <div class="subject-count" id="subjectCount"></div>
+                    </div>
+                    
+                    <div class="form-group checkbox-group">
+                        {{ form.accept_rules }}
+                        <label for="{{ form.accept_rules.id_for_label }}">
+                            I have read, understood, and agree to abide by all the school rules and regulations.
+                        </label>
+                        {% if form.accept_rules.errors %}
+                            <span class="error">{{ form.accept_rules.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-large" id="submitBtn">
+                            <i class="fas fa-user-check"></i> 
+                            {% if registration %}Update Registration{% else %}Complete Registration{% endif %}
+                        </button>
+                    </div>
+                </form>
+
+                <div id="streamData" data-streams="{{ stream_subjects_json }}" style="display:none;"></div>
+                
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Stream subjects data from server
+                        const streamDataElement = document.getElementById('streamData');
+                        const streamSubjectsData = JSON.parse(streamDataElement.dataset.streams);
+                        const streamSelect = document.getElementById('stream-select');
+                        const subjectsContainer = document.getElementById('subjectsContainer');
+                        const subjectCount = document.getElementById('subjectCount');
+                        const submitBtn = document.getElementById('submitBtn');
+                        
+                        function updateSubjects() {
+                            const selectedStreamId = streamSelect.value;
+                            
+                            if (!selectedStreamId || !streamSubjectsData[selectedStreamId]) {
+                                subjectsContainer.innerHTML = '<p class="no-stream-selected">Please select a stream above to see available subjects.</p>';
+                                subjectCount.textContent = '';
+                                return;
+                            }
+                            
+                            const subjects = streamSubjectsData[selectedStreamId];
+                            let html = '';
+                            
+                            subjects.forEach((subject, index) => {
+                                html += `
+                                    <div class="subject-checkbox" onclick="toggleSubjectCheckbox(${index})">
+                                        <input type="checkbox" 
+                                               name="selected_subjects" 
+                                               id="subject_${index}" 
+                                               value="${subject}"
+                                               onchange="updateSubjectCount()">
+                                        <span class="checkbox-tick">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                        <label for="subject_${index}">${subject}</label>
+                                    </div>
+                                `;
+                            });
+                            
+                            subjectsContainer.innerHTML = html;
+                            updateSubjectCount();
+                        }
+                        
+                        // Toggle checkbox when clicking on the subject box
+                        window.toggleSubjectCheckbox = function(index) {
+                            const checkbox = document.getElementById(`subject_${index}`);
+                            if (checkbox) {
+                                checkbox.checked = !checkbox.checked;
+                                updateSubjectCount();
+                            }
+                        };
+                        
+                        function updateSubjectCount() {
+                            const checked = document.querySelectorAll('input[name="selected_subjects"]:checked');
+                            const count = checked.length;
+                            
+                            // Update visual state of all checkboxes
+                            document.querySelectorAll('.subject-checkbox').forEach(function(box) {
+                                const cb = box.querySelector('input[type="checkbox"]');
+                                if (cb && cb.checked) {
+                                    box.classList.add('checked');
+                                } else {
+                                    box.classList.remove('checked');
+                                }
+                            });
+                            
+                            if (count === 0) {
+                                subjectCount.textContent = 'No subjects selected';
+                                subjectCount.className = 'subject-count error';
+                            } else if (count < 4) {
+                                subjectCount.textContent = `Selected: ${count} subject(s). Please select at least 4 subjects.`;
+                                subjectCount.className = 'subject-count warning';
+                            } else if (count > 8) {
+                                subjectCount.textContent = `Selected: ${count} subjects. Maximum allowed is 8.`;
+                                subjectCount.className = 'subject-count error';
+                            } else {
+                                subjectCount.textContent = `Selected: ${count} subject(s). Good!`;
+                                subjectCount.className = 'subject-count success';
+                            }
+                        }
+                        
+                        // Update subjects when stream changes
+                        streamSelect.addEventListener('change', updateSubjects);
+                        
+                        // Update count when subjects are checked/unchecked
+                        subjectsContainer.addEventListener('change', function(e) {
+                            if (e.target.type === 'checkbox') {
+                                updateSubjectCount();
+                            }
+                        });
+                        
+                        // Validate on submit
+                        submitBtn.addEventListener('click', function(e) {
+                            const checked = document.querySelectorAll('input[name="selected_subjects"]:checked');
+                            if (checked.length < 4) {
+                                e.preventDefault();
+                                alert('Please select at least 4 subjects.');
+                                return false;
+                            }
+                            if (checked.length > 8) {
+                                e.preventDefault();
+                                alert('You can select a maximum of 8 subjects.');
+                                return false;
+                            }
+                        });
+                        
+                        // Initialize on page load
+                        updateSubjects();
+                    });
+                </script>
+
+                <style>
+                    .subjects-section {
+                        background: #f8f9fa;
+                        padding: 1.5rem;
+                        border-radius: 8px;
+                        margin: 1.5rem 0;
+                    }
+                    
+                    .subjects-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                        gap: 0.75rem;
+                        margin-top: 1rem;
+                    }
+                    
+                    .subject-checkbox {
+                        display: flex;
+                        align-items: center;
+                        padding: 0.75rem 1rem;
+                        background: white;
+                        border: 2px solid #e0e0e0;
+                        border-radius: 8px;
+                        transition: all 0.2s ease;
+                        cursor: pointer;
+                        position: relative;
+                    }
+                    
+                    .subject-checkbox:hover {
+                        border-color: #2e86c1;
+                        background: #f0f7fb;
+                        transform: translateY(-1px);
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    }
+                    
+                    /* Hide default checkbox */
+                    .subject-checkbox input[type="checkbox"] {
+                        position: absolute;
+                        opacity: 0;
+                        width: 0;
+                        height: 0;
+                    }
+                    
+                    /* Custom checkbox with tick */
+                    .checkbox-tick {
+                        width: 24px;
+                        height: 24px;
+                        border: 2px solid #ccc;
+                        border-radius: 4px;
+                        margin-right: 0.75rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: white;
+                        transition: all 0.2s ease;
+                        flex-shrink: 0;
+                    }
+                    
+                    .checkbox-tick i {
+                        color: white;
+                        font-size: 14px;
+                        opacity: 0;
+                        transform: scale(0);
+                        transition: all 0.2s ease;
+                    }
+                    
+                    /* Checked state */
+                    .subject-checkbox.checked {
+                        border-color: #28a745;
+                        background: #d4edda;
+                    }
+                    
+                    .subject-checkbox.checked .checkbox-tick {
+                        background: #28a745;
+                        border-color: #28a745;
+                    }
+                    
+                    .subject-checkbox.checked .checkbox-tick i {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                    
+                    .subject-checkbox.checked label {
+                        color: #155724;
+                        font-weight: 600;
+                    }
+                    
+                    .subject-checkbox label {
+                        margin: 0;
+                        cursor: pointer;
+                        font-weight: 500;
+                        flex: 1;
+                        user-select: none;
+                    }
+                    
+                    .subject-count {
+                        margin-top: 1rem;
+                        padding: 0.75rem;
+                        border-radius: 4px;
+                        font-weight: 500;
+                        text-align: center;
+                    }
+                    
+                    .subject-count.error {
+                        background: #f8d7da;
+                        color: #721c24;
+                    }
+                    
+                    .subject-count.warning {
+                        background: #fff3cd;
+                        color: #856404;
+                    }
+                    
+                    .subject-count.success {
+                        background: #d4edda;
+                        color: #155724;
+                    }
+                    
+                    .no-stream-selected {
+                        color: #6c757d;
+                        font-style: italic;
+                        text-align: center;
+                        padding: 2rem;
+                    }
+                    
+                    .help-text {
+                        display: block;
+                        color: #6c757d;
+                        font-size: 0.875rem;
+                        margin-top: 0.25rem;
+                    }
+                </style>
+            </div>
+        </div>
+
+        <!-- Registration Fee Information -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2><i class="fas fa-file-invoice-dollar"></i> Registration Fees</h2>
+            </div>
+            <div class="card-body">
+                <div class="fee-breakdown">
+                    <div class="fee-item">
+                        <span class="fee-label">Registration Fee:</span>
+                        <span class="fee-value">${{ registration.registration_fee|default:"500.00" }}</span>
+                    </div>
+                    <div class="fee-item">
+                        <span class="fee-label">Annual Tuition:</span>
+                        <span class="fee-value">${{ learner.financial_info.tuition_fees|default:"5000.00" }}</span>
+                    </div>
+                    {% if learner.financial_info.scholarship_status != 'none' %}
+                    <div class="fee-item discount">
+                        <span class="fee-label">Scholarship ({{ learner.financial_info.get_scholarship_status_display }}):</span>
+                        <span class="fee-value">-${{ learner.financial_info.scholarship_amount }}</span>
+                    </div>
+                    {% endif %}
+                    {% if learner.financial_info.bursary_status == 'approved' %}
+                    <div class="fee-item discount">
+                        <span class="fee-label">Bursary Approved:</span>
+                        <span class="fee-value">-${{ learner.financial_info.bursary_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="fee-item total">
+                        <span class="fee-label">Balance Due:</span>
+                        <span class="fee-value">${{ learner.financial_info.balance_due|default:"5000.00" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if registration and registration.status == 'completed' %}
+        <!-- Proof of Registration -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2><i class="fas fa-file-pdf"></i> Proof of Registration</h2>
+            </div>
+            <div class="card-body">
+                <div class="proof-section">
+                    <p>Download your official proof of registration document:</p>
+                    <a href="{% url 'download_proof_registration' %}" class="btn btn-primary btn-large">
+                        <i class="fas fa-download"></i> Download PDF
+                    </a>
+                    <small class="help-text">This document serves as official proof of your academic registration.</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // iEnabler Sidebar Toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('ienablerToggle');
+        const sidebar = document.getElementById('ienablerSidebar');
+        const closeBtn = document.getElementById('closeSidebar');
+        const overlay = document.getElementById('overlay');
+        
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        toggle.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+    });
+</script>
+{% endblock %}

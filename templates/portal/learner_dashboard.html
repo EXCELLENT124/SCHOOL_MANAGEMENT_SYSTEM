@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+
+{% block title %}My Dashboard - {{ learner.full_name }}{% endblock %}
+
+{% block content %}
+<!-- iEnabler Toggle Menu -->
+<div class="ienabler-toggle" id="ienablerToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+<!-- iEnabler Sidebar -->
+<div class="ienabler-sidebar" id="ienablerSidebar">
+    <div class="ienabler-header">
+        <h3><i class="fas fa-bars"></i> Learner iEnabler</h3>
+        <button class="close-sidebar" id="closeSidebar">&times;</button>
+    </div>
+    <nav class="ienabler-nav">
+        <a href="{% url 'learner_dashboard' %}" class="active">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'academic_application' %}">
+            <i class="fas fa-file-alt"></i> Academic Application
+        </a>
+        <a href="{% url 'examinations' %}">
+            <i class="fas fa-clipboard-list"></i> Examinations
+        </a>
+        <a href="{% url 'academic_registration' %}">
+            <i class="fas fa-user-check"></i> Academic Registration
+        </a>
+        <a href="{% url 'student_enquiry' %}">
+            <i class="fas fa-question-circle"></i> Student Enquiry
+        </a>
+        <a href="{% url 'learner_logout' %}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<section class="dashboard-section">
+    <div class="container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="profile-info">
+                <h1>{{ learner.full_name }}</h1>
+                <p class="study-number">Study Number: <strong>{{ learner.study_number }}</strong></p>
+                <p class="grade-info">
+                    <span class="badge badge-info">{{ learner.grade }}</span>
+                    {% if learner.stream %}
+                        <span class="badge badge-secondary">{{ learner.stream.name }}</span>
+                    {% endif %}
+                    <span class="badge badge-{{ learner.admission_status }}">{{ learner.get_admission_status_display }}</span>
+                </p>
+            </div>
+            <div class="profile-actions">
+                <a href="{% url 'learner_logout' %}" class="btn btn-outline btn-small">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Two Main Containers -->
+        <div class="dashboard-grid">
+            <!-- Registration Information -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-user-check"></i> Registration Information</h2>
+                </div>
+                <div class="card-body">
+                    {% if registration %}
+                        <div class="info-row">
+                            <span class="label">Academic Year:</span>
+                            <span class="value">{{ registration.academic_year }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Stream:</span>
+                            <span class="value">{{ registration.stream.name|default:"Not Selected" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Registration Date:</span>
+                            <span class="value">{{ registration.registration_date|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Status:</span>
+                            <span class="badge badge-{{ registration.status }}">{{ registration.get_status_display }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Rules Accepted:</span>
+                            <span class="value">
+                                {% if registration.rules_accepted %}
+                                    <i class="fas fa-check-circle text-success"></i> Yes ({{ registration.rules_accepted_date|date:"M d, Y" }})
+                                {% else %}
+                                    <i class="fas fa-times-circle text-danger"></i> No
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if registration.registration_fee > 0 %}
+                        <div class="info-row">
+                            <span class="label">Registration Fee:</span>
+                            <span class="value">${{ registration.registration_fee }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Fee Paid:</span>
+                            <span class="value">
+                                {% if registration.fee_paid %}
+                                    <i class="fas fa-check-circle text-success"></i> Yes
+                                {% else %}
+                                    <i class="fas fa-times-circle text-danger"></i> No
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <a href="{% url 'academic_registration' %}" class="btn btn-primary btn-block mt-2">
+                            <i class="fas fa-edit"></i> Manage Registration
+                        </a>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard"></i>
+                            <p>No registration found for the current academic year.</p>
+                            {% if learner.admission_status == 'admitted' %}
+                                <a href="{% url 'academic_registration' %}" class="btn btn-primary">
+                                    <i class="fas fa-user-check"></i> Complete Registration
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Financial Information -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-credit-card"></i> Financial Information</h2>
+                </div>
+                <div class="card-body">
+                    {% if financial_info %}
+                        <div class="info-row">
+                            <span class="label">Tuition Fees:</span>
+                            <span class="value">${{ financial_info.tuition_fees }}</span>
+                        </div>
+                        
+                        <div class="financial-section">
+                            <h4>Scholarship Status</h4>
+                            <div class="info-row">
+                                <span class="label">Status:</span>
+                                <span class="badge badge-{{ financial_info.scholarship_status }}">
+                                    {{ financial_info.get_scholarship_status_display }}
+                                </span>
+                            </div>
+                            {% if financial_info.scholarship_status != 'none' %}
+                            <div class="info-row">
+                                <span class="label">Amount:</span>
+                                <span class="value">${{ financial_info.scholarship_amount }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="financial-section">
+                            <h4>Bursary Status</h4>
+                            <div class="info-row">
+                                <span class="label">Status:</span>
+                                <span class="badge badge-{{ financial_info.bursary_status }}">
+                                    {{ financial_info.get_bursary_status_display }}
+                                </span>
+                            </div>
+                            {% if financial_info.bursary_status != 'none' %}
+                            <div class="info-row">
+                                <span class="label">Amount:</span>
+                                <span class="value">${{ financial_info.bursary_amount }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="financial-section highlight">
+                            <div class="info-row">
+                                <span class="label">Total Paid:</span>
+                                <span class="value">${{ financial_info.total_paid }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Balance Due:</span>
+                                <span class="value {% if financial_info.balance_due > 0 %}text-danger{% else %}text-success{% endif %}">
+                                    ${{ financial_info.balance_due }}
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Payment Status:</span>
+                                <span class="badge badge-{{ financial_info.payment_status }}">
+                                    {{ financial_info.get_payment_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {% if financial_info.last_payment_date %}
+                        <div class="info-row">
+                            <span class="label">Last Payment:</span>
+                            <span class="value">{{ financial_info.last_payment_date|date:"M d, Y" }}</span>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <p>No financial information available.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Examinations -->
+        <div class="dashboard-card full-width">
+            <div class="card-header">
+                <h2><i class="fas fa-clipboard-list"></i> Recent Examinations</h2>
+                <a href="{% url 'examinations' %}" class="btn btn-outline btn-small">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_exams %}
+                <table class="exams-table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Exam Type</th>
+                            <th>Marks</th>
+                            <th>Grade</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exam in recent_exams %}
+                        <tr>
+                            <td>{{ exam.subject }}</td>
+                            <td>{{ exam.get_exam_type_display }}</td>
+                            <td>{{ exam.marks }}%</td>
+                            <td><span class="grade-badge grade-{{ exam.grade }}">{{ exam.grade }}</span></td>
+                            <td>{{ exam.date_taken|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-clipboard"></i>
+                    <p>No examination records available.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Access Links -->
+        <div class="quick-access">
+            <h3>Quick Access</h3>
+            <div class="quick-links">
+                <a href="{% url 'academic_application' %}" class="quick-link">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Application</span>
+                </a>
+                <a href="{% url 'examinations' %}" class="quick-link">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Examinations</span>
+                </a>
+                <a href="{% url 'academic_registration' %}" class="quick-link">
+                    <i class="fas fa-user-check"></i>
+                    <span>Registration</span>
+                </a>
+                <a href="{% url 'student_enquiry' %}" class="quick-link">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Enquiry</span>
+                </a>
+                <a href="{% url 'student_enquiry' %}" class="quick-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Progress Report</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // iEnabler Sidebar Toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('ienablerToggle');
+        const sidebar = document.getElementById('ienablerSidebar');
+        const closeBtn = document.getElementById('closeSidebar');
+        const overlay = document.getElementById('overlay');
+        
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        toggle.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+    });
+</script>
+{% endblock %}

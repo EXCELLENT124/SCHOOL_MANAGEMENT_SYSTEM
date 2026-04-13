@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Check Admission Status - School Portal{% endblock %}
+
+{% block content %}
+<section class="form-section">
+    <div class="container">
+        <div class="form-header">
+            <h1><i class="fas fa-search"></i> Check Admission Status</h1>
+            <p>Enter your Application ID to check the status of your admission application.</p>
+        </div>
+
+        <form method="post" class="status-form">
+            {% csrf_token %}
+            <div class="form-group large">
+                <label for="application_id">Application ID *</label>
+                <input type="text" name="application_id" id="application_id" class="form-control" 
+                       placeholder="Enter your Application ID (e.g., APP12345678)" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-large">
+                <i class="fas fa-search"></i> Check Status
+            </button>
+        </form>
+
+        {% if application %}
+        <div class="status-result">
+            <h2>Application Status</h2>
+            
+            <div class="status-card status-{{ application.status }}">
+                <div class="status-header">
+                    <h3>{{ application.get_status_display }}</h3>
+                    <span class="status-badge">{{ application.status|title }}</span>
+                </div>
+                
+                <div class="status-details">
+                    <div class="detail-row">
+                        <span class="label">Application ID:</span>
+                        <span class="value">{{ application.application_id }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Learner Name:</span>
+                        <span class="value">{{ application.learner_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Grade Applied For:</span>
+                        <span class="value">{{ application.grade_applying }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Application Date:</span>
+                        <span class="value">{{ application.application_date|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Parent Email:</span>
+                        <span class="value">{{ application.parent_email }}</span>
+                    </div>
+                    
+                    {% if application.study_number %}
+                    <div class="detail-row highlight">
+                        <span class="label"><i class="fas fa-star"></i> Study Number:</span>
+                        <span class="value">{{ application.study_number }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label"><i class="fas fa-key"></i> PIN:</span>
+                        <span class="value">Check your email for the PIN</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if application.review_notes %}
+                    <div class="detail-row full-width">
+                        <span class="label">Review Notes:</span>
+                        <span class="value notes">{{ application.review_notes }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if application.status == 'accepted' %}
+                <div class="status-message success">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Congratulations! Your application has been accepted. Your Study Number is: <strong>{{ application.study_number }}</strong></p>
+                    <p>Create your PIN below to access the learner portal and complete registration.</p>
+                    <div class="action-buttons">
+                        <a href="{% url 'create_pin' %}?application_id={{ application.application_id }}" class="btn btn-primary">
+                            <i class="fas fa-key"></i> Create Your PIN
+                        </a>
+                        <a href="{% url 'learner_login' %}" class="btn btn-secondary">
+                            <i class="fas fa-sign-in-alt"></i> Login (if PIN already created)
+                        </a>
+                    </div>
+                </div>
+                {% elif application.status == 'pending' %}
+                <div class="status-message pending">
+                    <i class="fas fa-clock"></i>
+                    <p>Your application is currently being reviewed. Please check back later or wait for an email notification.</p>
+                </div>
+                {% elif application.status == 'rejected' %}
+                <div class="status-message rejected">
+                    <i class="fas fa-times-circle"></i>
+                    <p>We regret to inform you that your application has not been successful. Please contact the school for more information.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <style>
+                .action-buttons {
+                    display: flex;
+                    gap: 1rem;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    margin-top: 1rem;
+                }
+            </style>
+            
+            {% if application.documents.exists %}
+            <div class="documents-section">
+                <h3>Uploaded Documents</h3>
+                <table class="documents-table">
+                    <thead>
+                        <tr>
+                            <th>Document Type</th>
+                            <th>Upload Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in application.documents.all %}
+                        <tr>
+                            <td>{{ doc.get_document_type_display }}</td>
+                            <td>{{ doc.uploaded_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if doc.verified %}
+                                    <span class="badge badge-success">Verified</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

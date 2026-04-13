@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+
+{% block title %}Academic Application - {{ learner.full_name }}{% endblock %}
+
+{% block content %}
+<!-- iEnabler Toggle Menu -->
+<div class="ienabler-toggle" id="ienablerToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+<!-- iEnabler Sidebar -->
+<div class="ienabler-sidebar" id="ienablerSidebar">
+    <div class="ienabler-header">
+        <h3><i class="fas fa-bars"></i> Learner iEnabler</h3>
+        <button class="close-sidebar" id="closeSidebar">&times;</button>
+    </div>
+    <nav class="ienabler-nav">
+        <a href="{% url 'learner_dashboard' %}">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'academic_application' %}" class="active">
+            <i class="fas fa-file-alt"></i> Academic Application
+        </a>
+        <a href="{% url 'examinations' %}">
+            <i class="fas fa-clipboard-list"></i> Examinations
+        </a>
+        <a href="{% url 'academic_registration' %}">
+            <i class="fas fa-user-check"></i> Academic Registration
+        </a>
+        <a href="{% url 'student_enquiry' %}">
+            <i class="fas fa-question-circle"></i> Student Enquiry
+        </a>
+        <a href="{% url 'learner_logout' %}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<section class="dashboard-section">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-file-alt"></i> Academic Application</h1>
+            <p>View your admission application process and status</p>
+        </div>
+
+        <!-- Application Status Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2>Application Status</h2>
+            </div>
+            <div class="card-body">
+                {% if application %}
+                    <div class="application-timeline">
+                        <div class="timeline-item {% if application.status != 'rejected' %}completed{% endif %}">
+                            <div class="timeline-icon">
+                                <i class="fas fa-paper-plane"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Application Submitted</h4>
+                                <p>{{ application.application_date|date:"F d, Y at H:i" }}</p>
+                                <span class="timeline-status completed"><i class="fas fa-check"></i> Completed</span>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item {% if application.status == 'under_review' or application.status == 'accepted' or application.status == 'rejected' %}completed{% elif application.status == 'pending' %}active{% endif %}">
+                            <div class="timeline-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Under Review</h4>
+                                <p>Your application is being reviewed by the admissions team</p>
+                                <span class="timeline-status {% if application.status == 'under_review' or application.status == 'accepted' or application.status == 'rejected' %}completed{% elif application.status == 'pending' %}active{% else %}pending{% endif %}">
+                                    {% if application.status == 'under_review' or application.status == 'accepted' or application.status == 'rejected' %}
+                                        <i class="fas fa-check"></i> Completed
+                                    {% elif application.status == 'pending' %}
+                                        <i class="fas fa-clock"></i> In Progress
+                                    {% else %}
+                                        <i class="fas fa-hourglass"></i> Pending
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item {% if application.status == 'accepted' or application.status == 'rejected' %}completed{% endif %}">
+                            <div class="timeline-icon">
+                                <i class="fas fa-gavel"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Decision Made</h4>
+                                <p>
+                                    {% if application.status == 'accepted' %}
+                                        Congratulations! Your application has been accepted.
+                                    {% elif application.status == 'rejected' %}
+                                        We regret to inform you that your application was not successful.
+                                    {% elif application.status == 'waitlisted' %}
+                                        You have been placed on the waiting list.
+                                    {% else %}
+                                        Awaiting final decision from the admissions committee.
+                                    {% endif %}
+                                </p>
+                                <span class="timeline-status {% if application.status == 'accepted' %}success{% elif application.status == 'rejected' %}rejected{% elif application.status == 'waitlisted' %}warning{% else %}pending{% endif %}">
+                                    {% if application.status == 'accepted' %}
+                                        <i class="fas fa-check-circle"></i> Accepted
+                                    {% elif application.status == 'rejected' %}
+                                        <i class="fas fa-times-circle"></i> Rejected
+                                    {% elif application.status == 'waitlisted' %}
+                                        <i class="fas fa-list"></i> Waitlisted
+                                    {% else %}
+                                        <i class="fas fa-hourglass"></i> Pending
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {% if application.status == 'accepted' %}
+                        <div class="timeline-item {% if learner.admission_status == 'registered' %}completed{% else %}active{% endif %}">
+                            <div class="timeline-icon">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Registration Complete</h4>
+                                <p>
+                                    {% if learner.admission_status == 'registered' %}
+                                        You have completed your academic registration.
+                                    {% else %}
+                                        Please complete your academic registration to finalize admission.
+                                    {% endif %}
+                                </p>
+                                <span class="timeline-status {% if learner.admission_status == 'registered' %}completed{% else %}active{% endif %}">
+                                    {% if learner.admission_status == 'registered' %}
+                                        <i class="fas fa-check"></i> Completed
+                                    {% else %}
+                                        <i class="fas fa-exclamation-circle"></i> Action Required
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Application Details -->
+                    <div class="application-details">
+                        <h3>Application Details</h3>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="label">Application ID:</span>
+                                <span class="value">{{ application.application_id }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Study Number:</span>
+                                <span class="value">{{ application.study_number|default:"Pending" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Learner Name:</span>
+                                <span class="value">{{ application.learner_name }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Grade Applied For:</span>
+                                <span class="value">{{ application.grade_applying }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Application Date:</span>
+                                <span class="value">{{ application.application_date|date:"F d, Y" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Decision Date:</span>
+                                <span class="value">{{ application.decision_date|date:"F d, Y"|default:"Pending" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if application.review_notes %}
+                    <div class="review-notes">
+                        <h4>Review Notes</h4>
+                        <p>{{ application.review_notes }}</p>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-file-excel"></i>
+                        <p>No application record found. Please contact the school administration.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Uploaded Documents -->
+        {% if documents %}
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2>Uploaded Documents</h2>
+            </div>
+            <div class="card-body">
+                <table class="documents-table">
+                    <thead>
+                        <tr>
+                            <th>Document Type</th>
+                            <th>File Name</th>
+                            <th>Upload Date</th>
+                            <th>Verification Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in documents %}
+                        <tr>
+                            <td>{{ doc.get_document_type_display }}</td>
+                            <td>{{ doc.filename }}</td>
+                            <td>{{ doc.uploaded_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if doc.verified %}
+                                    <span class="badge badge-success"><i class="fas fa-check"></i> Verified</span>
+                                {% else %}
+                                    <span class="badge badge-warning"><i class="fas fa-clock"></i> Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if application.status == 'accepted' and learner.admission_status != 'registered' %}
+        <div class="action-banner">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Your application has been accepted! Please complete your academic registration.</p>
+            <a href="{% url 'academic_registration' %}" class="btn btn-primary">
+                <i class="fas fa-user-check"></i> Complete Registration
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // iEnabler Sidebar Toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('ienablerToggle');
+        const sidebar = document.getElementById('ienablerSidebar');
+        const closeBtn = document.getElementById('closeSidebar');
+        const overlay = document.getElementById('overlay');
+        
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        toggle.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+    });
+</script>
+{% endblock %}

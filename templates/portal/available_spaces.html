@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load exam_tags %}
+
+{% block title %}Available Spaces - School Portal{% endblock %}
+
+{% block content %}
+<section class="spaces-section">
+    <div class="container">
+        <div class="section-header">
+            <h1><i class="fas fa-chair"></i> Available Spaces Per Grade</h1>
+            <p>Current academic year: {{ grades.0.year }}</p>
+        </div>
+
+        <div class="spaces-grid">
+            {% for grade in grades %}
+            <div class="space-card">
+                <div class="space-header">
+                    <h3>{{ grade.grade_name }}</h3>
+                    <span class="space-year">{{ grade.year }}</span>
+                </div>
+                
+                <div class="space-stats">
+                    <div class="stat">
+                        <span class="stat-value">{{ grade.capacity }}</span>
+                        <span class="stat-label">Total Capacity</span>
+                    </div>
+                    <div class="stat {% if grade.available_spaces == 0 %}stat-full{% elif grade.available_spaces < 5 %}stat-limited{% else %}stat-available{% endif %}">
+                        <span class="stat-value">{{ grade.available_spaces }}</span>
+                        <span class="stat-label">Available</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ grade.capacity|sub:grade.available_spaces }}</span>
+                        <span class="stat-label">Filled</span>
+                    </div>
+                </div>
+                
+                {% with filled=grade.capacity|sub:grade.available_spaces %}
+                {% with percentage=filled|div:grade.capacity|mul:100 %}
+                <div class="space-progress">
+                    <div class="progress-bar" data-filled="{{ filled }}" data-capacity="{{ grade.capacity }}">
+                        <div class="progress-fill js-progress-fill"></div>
+                    </div>
+                    <span class="progress-text">
+                        {{ filled }} of {{ grade.capacity }} filled ({{ percentage|floatformat:0 }}%)
+                    </span>
+                </div>
+                {% endwith %}
+                {% endwith %}
+                
+                <div class="space-status">
+                    {% if grade.available_spaces == 0 %}
+                        <span class="badge badge-danger"><i class="fas fa-ban"></i> Full - Waitlist Only</span>
+                    {% elif grade.available_spaces < 5 %}
+                        <span class="badge badge-warning"><i class="fas fa-exclamation-triangle"></i> Limited Spaces</span>
+                    {% else %}
+                        <span class="badge badge-success"><i class="fas fa-check-circle"></i> Accepting Applications</span>
+                    {% endif %}
+                </div>
+                
+                {% if grade.description %}
+                <div class="space-description">
+                    <p>{{ grade.description }}</p>
+                </div>
+                {% endif %}
+                
+                {% if grade.available_spaces > 0 %}
+                <a href="{% url 'apply_admission' %}" class="btn btn-primary btn-block">
+                    <i class="fas fa-user-plus"></i> Apply Now
+                </a>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-info-circle"></i>
+                <p>No grade information available at this time.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

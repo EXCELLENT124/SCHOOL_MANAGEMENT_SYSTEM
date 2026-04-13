@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome - School Management System{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Welcome to Secondary School</h1>
+        <p class="hero-subtitle">Empowering Future Leaders Through Quality Education</p>
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number">{{ total_learners }}</span>
+                <span class="stat-label">Registered Learners</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">5</span>
+                <span class="stat-label">Grade Levels</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">100%</span>
+                <span class="stat-label">Success Rate</span>
+            </div>
+        </div>
+        <div class="hero-buttons">
+            <a href="{% url 'apply_admission' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Apply for Admission
+            </a>
+            <a href="{% url 'learner_login' %}" class="btn btn-secondary">
+                <i class="fas fa-sign-in-alt"></i> Learner Login
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="container">
+        <h2>Our Services</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-file-alt"></i>
+                <h3>Online Application</h3>
+                <p>Apply for admission online with our easy-to-use application form. Upload required documents securely.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-search"></i>
+                <h3>Status Tracking</h3>
+                <p>Track your admission status in real-time using your unique application ID.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-user-graduate"></i>
+                <h3>Learner Portal</h3>
+                <p>Access your profile, view academic records, examinations, and manage registration.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-credit-card"></i>
+                <h3>Financial Information</h3>
+                <p>View fee structures, scholarship status, bursary information, and payment history.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="grades-section">
+    <div class="container">
+        <h2>Available Grade Spaces for {{ grades.0.year }}</h2>
+        <div class="grades-table-container">
+            <table class="grades-table">
+                <thead>
+                    <tr>
+                        <th>Grade</th>
+                        <th>Total Capacity</th>
+                        <th>Available Spaces</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade in grades %}
+                    <tr>
+                        <td>{{ grade.grade_name }}</td>
+                        <td>{{ grade.capacity }}</td>
+                        <td class="{% if grade.available_spaces == 0 %}full{% elif grade.available_spaces < 5 %}limited{% else %}available{% endif %}">
+                            {{ grade.available_spaces }}
+                        </td>
+                        <td>
+                            {% if grade.available_spaces == 0 %}
+                                <span class="badge badge-danger">Full</span>
+                            {% elif grade.available_spaces < 5 %}
+                                <span class="badge badge-warning">Limited</span>
+                            {% else %}
+                                <span class="badge badge-success">Open</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No grade information available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{% url 'available_spaces' %}" class="btn btn-outline">View All Details</a>
+        </div>
+    </div>
+</section>
+
+<section class="how-it-works">
+    <div class="container">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h4>Apply Online</h4>
+                <p>Fill out the online application form with learner and parent details.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h4>Upload Documents</h4>
+                <p>Submit required documents: birth certificate and previous progress report.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h4>Wait for Review</h4>
+                <p>Your application will be reviewed. Check status using your Application ID.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h4>Login & Register</h4>
+                <p>Once accepted, login with your Study Number and PIN to complete registration.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

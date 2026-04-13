@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}School Management System{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="nav-logo">
+                <i class="fas fa-school"></i>
+                <span>School Portal</span>
+            </a>
+            
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'apply_admission' %}">Apply for Admission</a></li>
+                <li><a href="{% url 'admission_status_check' %}">Check Status</a></li>
+                <li><a href="{% url 'create_pin' %}">Create PIN</a></li>
+                <li><a href="{% url 'available_spaces' %}">Available Spaces</a></li>
+                {% if request.session.is_learner %}
+                    <li><a href="{% url 'learner_dashboard' %}">My Dashboard</a></li>
+                    <li><a href="{% url 'learner_logout' %}">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'learner_login' %}" class="btn-login">Learner Login</a></li>
+                {% endif %}
+            </ul>
+            
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                        <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; {% now "Y" %} Secondary School Management System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

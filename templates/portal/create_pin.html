@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Create PIN - School Portal{% endblock %}
+
+{% block content %}
+<section class="login-section">
+    <div class="container">
+        <div class="login-container">
+            <div class="login-header">
+                <i class="fas fa-key login-icon"></i>
+                <h1>Create Your PIN</h1>
+                <p>Set up your secure PIN to access the learner portal</p>
+            </div>
+
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.application_id.id_for_label }}">
+                        <i class="fas fa-id-card"></i> {{ form.application_id.label }} *
+                    </label>
+                    {{ form.application_id }}
+                    {% if form.application_id.errors %}
+                        <span class="error">{{ form.application_id.errors.0 }}</span>
+                    {% endif %}
+                    <small class="help-text">Enter the Application ID provided when you applied (e.g., APP12345678)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.pin.id_for_label }}">
+                        <i class="fas fa-lock"></i> {{ form.pin.label }} *
+                    </label>
+                    {{ form.pin }}
+                    {% if form.pin.errors %}
+                        <span class="error">{{ form.pin.errors.0 }}</span>
+                    {% endif %}
+                    <small class="help-text">Create a 6-digit PIN (numbers only)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.confirm_pin.id_for_label }}">
+                        <i class="fas fa-lock"></i> {{ form.confirm_pin.label }} *
+                    </label>
+                    {{ form.confirm_pin }}
+                    {% if form.confirm_pin.errors %}
+                        <span class="error">{{ form.confirm_pin.errors.0 }}</span>
+                    {% endif %}
+                    <small class="help-text">Re-enter your 6-digit PIN to confirm</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block btn-large">
+                    <i class="fas fa-save"></i> Create PIN
+                </button>
+            </form>
+
+            <div class="login-help">
+                <div class="help-section">
+                    <h4><i class="fas fa-info-circle"></i> When can I create my PIN?</h4>
+                    <p>You can only create a PIN after your application has been <strong>accepted</strong>. Once accepted, your Application ID will be associated with a Study Number.</p>
+                </div>
+                
+                <div class="help-section">
+                    <h4><i class="fas fa-question-circle"></i> Forgot your Application ID?</h4>
+                    <p>If you've forgotten your Application ID, please contact the school administration:</p>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> Email: admin@school.edu</li>
+                        <li><i class="fas fa-phone"></i> Phone: +27 12 345 6789</li>
+                    </ul>
+                </div>
+                
+                <div class="help-section">
+                    <h4><i class="fas fa-search"></i> Check Application Status?</h4>
+                    <p>If you don't know if your application has been accepted:</p>
+                    <a href="{% url 'admission_status_check' %}" class="btn btn-outline">
+                        <i class="fas fa-search"></i> Check Status
+                    </a>
+                </div>
+                
+                <div class="help-section">
+                    <h4><i class="fas fa-sign-in-alt"></i> Already have a PIN?</h4>
+                    <p>If you've already created your PIN, you can login directly:</p>
+                    <a href="{% url 'learner_login' %}" class="btn btn-outline">
+                        <i class="fas fa-sign-in-alt"></i> Login Here
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.help-section {
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.help-section h4 {
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.help-section p {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.help-section ul {
+    list-style: none;
+    margin-bottom: 1rem;
+}
+
+.help-section li {
+    padding: 0.25rem 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.help-section li i {
+    color: var(--primary-color);
+    margin-right: 0.5rem;
+}
+</style>
+{% endblock %}

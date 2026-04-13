@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Enquiry - {{ learner.full_name }}{% endblock %}
+
+{% block content %}
+<!-- iEnabler Toggle Menu -->
+<div class="ienabler-toggle" id="ienablerToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+<!-- iEnabler Sidebar -->
+<div class="ienabler-sidebar" id="ienablerSidebar">
+    <div class="ienabler-header">
+        <h3><i class="fas fa-bars"></i> Learner iEnabler</h3>
+        <button class="close-sidebar" id="closeSidebar">&times;</button>
+    </div>
+    <nav class="ienabler-nav">
+        <a href="{% url 'learner_dashboard' %}">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'academic_application' %}">
+            <i class="fas fa-file-alt"></i> Academic Application
+        </a>
+        <a href="{% url 'examinations' %}">
+            <i class="fas fa-clipboard-list"></i> Examinations
+        </a>
+        <a href="{% url 'academic_registration' %}">
+            <i class="fas fa-user-check"></i> Academic Registration
+        </a>
+        <a href="{% url 'student_enquiry' %}" class="active">
+            <i class="fas fa-question-circle"></i> Student Enquiry
+        </a>
+        <a href="{% url 'learner_logout' %}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<section class="dashboard-section">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-question-circle"></i> Student Enquiry</h1>
+            <p>View your academic records, documents, and admission information</p>
+        </div>
+
+        <!-- Quick Links Grid -->
+        <div class="enquiry-grid">
+            <!-- Academic Admission Status -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-user-check"></i> Admission Status</h2>
+                </div>
+                <div class="card-body">
+                    {% if application %}
+                        <div class="enquiry-item">
+                            <span class="label">Current Status:</span>
+                            <span class="badge badge-{{ application.status }}">{{ application.get_status_display }}</span>
+                        </div>
+                        <div class="enquiry-item">
+                            <span class="label">Application ID:</span>
+                            <span class="value">{{ application.application_id }}</span>
+                        </div>
+                        <div class="enquiry-item">
+                            <span class="label">Applied Grade:</span>
+                            <span class="value">{{ application.grade_applying }}</span>
+                        </div>
+                        <div class="enquiry-item">
+                            <span class="label">Application Date:</span>
+                            <span class="value">{{ application.application_date|date:"M d, Y" }}</span>
+                        </div>
+                        {% if application.status == 'accepted' %}
+                        <div class="enquiry-item highlight">
+                            <span class="label"><i class="fas fa-star"></i> Study Number:</span>
+                            <span class="value">{{ learner.study_number }}</span>
+                        </div>
+                        {% endif %}
+                        <a href="{% url 'academic_application' %}" class="btn btn-outline btn-block mt-2">
+                            <i class="fas fa-eye"></i> View Full Details
+                        </a>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-file-excel"></i>
+                            <p>No application record found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Progress Report -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-line"></i> Progress Report</h2>
+                </div>
+                <div class="card-body">
+                    {% if latest_report %}
+                        <div class="enquiry-item">
+                            <span class="label">Latest Report:</span>
+                            <span class="value">Year {{ latest_report.year }} - Term {{ latest_report.term }}</span>
+                        </div>
+                        <div class="enquiry-item">
+                            <span class="label">Overall Average:</span>
+                            <span class="value highlight">{{ latest_report.overall_average }}%</span>
+                        </div>
+                        <div class="enquiry-item">
+                            <span class="label">Class Position:</span>
+                            <span class="value">{{ latest_report.class_position }} of {{ latest_report.total_learners }}</span>
+                        </div>
+                        <div class="enquiry-item">
+                            <span class="label">Issue Date:</span>
+                            <span class="value">{{ latest_report.date_issued|date:"M d, Y" }}</span>
+                        </div>
+                        {% if latest_report.report_file %}
+                        <a href="{{ latest_report.report_file.url }}" class="btn btn-primary btn-block mt-2" target="_blank">
+                            <i class="fas fa-download"></i> Download Report
+                        </a>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard"></i>
+                            <p>No progress reports available yet.</p>
+                        </div>
+                    {% endif %}
+                    <a href="{% url 'examinations' %}" class="btn btn-outline btn-block mt-2">
+                        <i class="fas fa-clipboard-list"></i> View All Exams
+                    </a>
+                </div>
+            </div>
+
+            <!-- Proof of Registration -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-file-signature"></i> Proof of Registration</h2>
+                </div>
+                <div class="card-body">
+                    {% if registration %}
+                        <div class="enquiry-item">
+                            <span class="label">Registration Status:</span>
+                            <span class="badge badge-{{ registration.status }}">{{ registration.get_status_display }}</span>
+                        </div>
+                        <div class="enquiry-item">
+                            <span class="label">Academic Year:</span>
+                            <span class="value">{{ registration.academic_year }}</span>
+                        </div>
+                        <div class="enquiry-item">
+                            <span class="label">Stream:</span>
+                            <span class="value">{{ registration.stream.name|default:"Not Selected" }}</span>
+                        </div>
+                        <div class="enquiry-item">
+                            <span class="label">Registration Date:</span>
+                            <span class="value">{{ registration.registration_date|date:"M d, Y" }}</span>
+                        </div>
+                        {% if registration.status == 'completed' %}
+                        <a href="{% url 'download_proof_registration' %}" class="btn btn-primary btn-block mt-2">
+                            <i class="fas fa-download"></i> Download Proof of Registration
+                        </a>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard"></i>
+                            <p>No registration found for current academic year.</p>
+                            {% if learner.admission_status == 'admitted' %}
+                            <a href="{% url 'academic_registration' %}" class="btn btn-primary btn-block mt-2">
+                                <i class="fas fa-user-check"></i> Complete Registration
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Certificates & Documents -->
+            <div class="dashboard-card full-width">
+                <div class="card-header">
+                    <h2><i class="fas fa-certificate"></i> Certificates & Uploaded Documents</h2>
+                </div>
+                <div class="card-body">
+                    {% if documents %}
+                        <p class="section-intro">All documents uploaded during your application process:</p>
+                        <table class="documents-table">
+                            <thead>
+                                <tr>
+                                    <th>Document Type</th>
+                                    <th>File Name</th>
+                                    <th>Upload Date</th>
+                                    <th>Verification</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in documents %}
+                                <tr>
+                                    <td>{{ doc.get_document_type_display }}</td>
+                                    <td>{{ doc.filename }}</td>
+                                    <td>{{ doc.uploaded_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        {% if doc.verified %}
+                                            <span class="badge badge-success"><i class="fas fa-check"></i> Verified</span>
+                                        {% else %}
+                                            <span class="badge badge-warning"><i class="fas fa-clock"></i> Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'view_certificate' doc.id %}" class="btn btn-small btn-outline" target="_blank">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>No documents uploaded yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact for Enquiries -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h2><i class="fas fa-envelope"></i> Contact for Enquiries</h2>
+            </div>
+            <div class="card-body">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <span class="label">Email:</span>
+                            <span class="value">admin@school.edu</span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <span class="label">Phone:</span>
+                            <span class="value">+27 12 345 6789</span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <span class="label">Address:</span>
+                            <span class="value">123 School Street, City, Country</span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <span class="label">Office Hours:</span>
+                            <span class="value">Monday - Friday, 8:00 AM - 4:00 PM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // iEnabler Sidebar Toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.getElementById('ienablerToggle');
+        const sidebar = document.getElementById('ienablerSidebar');
+        const closeBtn = document.getElementById('closeSidebar');
+        const overlay = document.getElementById('overlay');
+        
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        toggle.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+    });
+</script>
+{% endblock %}
