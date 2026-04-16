@@ -144,7 +144,6 @@ A comprehensive Django-based school management portal that allows parents to app
    - Go to "Academic Registration"
    - Read and accept the rules and regulations
    - Choose your stream (Science, Commercial, or General)
-   - Select individual subjects (4-8 required) by ticking checkboxes
    - Submit registration
    - Download Proof of Registration as PDF
 
@@ -163,17 +162,11 @@ A comprehensive Django-based school management portal that allows parents to app
    - When accepting an application, manually create a Learner record with the study number
    - Set up FinancialInfo for tuition and scholarships
 
-4. **Manage Subjects and Streams**:
-   - Add individual subjects under "Portal > Subjects"
-   - Assign subjects to streams using the horizontal filter
-   - Activate/deactivate subjects as needed
-   - Each stream can have 4-8+ subjects that applicants can select from
-
-5. **Manage Grades**:
+4. **Manage Grades**:
    - Add/modify grade capacities
    - Monitor available spaces
 
-6. **Add Exam Records**:
+5. **Add Exam Records**:
    - Add examination results for learners
    - Create progress reports
 
@@ -267,5 +260,3 @@ For issues or questions, please contact the school administration.
 ## License
 
 This project is created for educational purposes.
-#   S C H O O L _ M A N A G E M E N T _ S Y S T E M  
- 
