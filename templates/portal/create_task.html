@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Task - School Portal{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-plus-circle"></i> Create New Task</h2>
+            <p>Create assignments, quizzes, or projects for your students</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="form-container">
+            <form method="post" enctype="multipart/form-data" class="task-form">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        {{ form.title.label_tag }}
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <span class="error">{{ form.title.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group col-md-6">
+                        {{ form.task_type.label_tag }}
+                        {{ form.task_type }}
+                        {% if form.task_type.errors %}
+                            <span class="error">{{ form.task_type.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form.description.label_tag }}
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <span class="error">{{ form.description.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        {{ form.grade.label_tag }}
+                        {{ form.grade }}
+                        {% if form.grade.errors %}
+                            <span class="error">{{ form.grade.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group col-md-4">
+                        {{ form.subject.label_tag }}
+                        {{ form.subject }}
+                        {% if form.subject.errors %}
+                            <span class="error">{{ form.subject.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group col-md-4">
+                        {{ form.total_marks.label_tag }}
+                        {{ form.total_marks }}
+                        {% if form.total_marks.errors %}
+                            <span class="error">{{ form.total_marks.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form.content_type.label_tag }}
+                    {{ form.content_type }}
+                    {% if form.content_type.errors %}
+                        <span class="error">{{ form.content_type.errors.0 }}</span>
+                    {% endif %}
+                    <small class="help-text">{{ form.content_type.help_text }}</small>
+                </div>
+
+                <div class="form-group">
+                    {{ form.text_content.label_tag }}
+                    {{ form.text_content }}
+                    {% if form.text_content.errors %}
+                        <span class="error">{{ form.text_content.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.attachment.label_tag }}
+                    {{ form.attachment }}
+                    {% if form.attachment.errors %}
+                        <span class="error">{{ form.attachment.errors.0 }}</span>
+                    {% endif %}
+                    <small class="help-text">{{ form.attachment.help_text }}</small>
+                </div>
+
+                <div class="form-group">
+                    {{ form.due_date.label_tag }}
+                    {{ form.due_date }}
+                    {% if form.due_date.errors %}
+                        <span class="error">{{ form.due_date.errors.0 }}</span>
+                    {% endif %}
+                    <small class="help-text">{{ form.due_date.help_text }}</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Task
+                    </button>
+                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contentTypeSelect = document.getElementById('id_content_type');
+    const textContentDiv = document.querySelector('div:has(#id_text_content)');
+    const attachmentDiv = document.querySelector('div:has(#id_attachment)');
+    
+    function toggleContentFields() {
+        const contentType = contentTypeSelect.value;
+        
+        if (contentType === 'text') {
+            textContentDiv.style.display = 'block';
+            attachmentDiv.style.display = 'none';
+            document.getElementById('id_text_content').required = true;
+            document.getElementById('id_attachment').required = false;
+        } else if (contentType === 'pdf') {
+            textContentDiv.style.display = 'none';
+            attachmentDiv.style.display = 'block';
+            document.getElementById('id_text_content').required = false;
+            document.getElementById('id_attachment').required = true;
+        } else { // mixed
+            textContentDiv.style.display = 'block';
+            attachmentDiv.style.display = 'block';
+            document.getElementById('id_text_content').required = false;
+            document.getElementById('id_attachment').required = false;
+        }
+    }
+    
+    // Initial setup
+    toggleContentFields();
+    
+    // Listen for changes
+    contentTypeSelect.addEventListener('change', toggleContentFields);
+});
+</script>
+
+<style>
+.task-form .form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.task-form .form-row .form-group {
+    flex: 1;
+}
+
+.task-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.task-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.task-form input,
+.task-form select,
+.task-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.task-form textarea {
+    resize: vertical;
+}
+
+.task-form .error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.task-form .help-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+}
+
+.form-actions button,
+.form-actions a {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.form-actions .btn-primary {
+    background-color: #2e86c1;
+    color: white;
+}
+
+.form-actions .btn-primary:hover {
+    background-color: #1e5a8a;
+}
+
+.form-actions .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.form-actions .btn-secondary:hover {
+    background-color: #545b62;
+}
+</style>
+{% endblock %}

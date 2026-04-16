@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+
+{% block title %}Grade Submission - School Portal{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-edit"></i> Grade Submission</h2>
+            <p>{{ task.title }} - {{ submission.learner.full_name }}</p>
+        </div>
+
+        <div class="submission-preview">
+            <div class="preview-card">
+                <div class="preview-header">
+                    <h3>Submission Details</h3>
+                    <div class="submission-meta">
+                        <span class="meta-item">
+                            <i class="fas fa-user"></i>
+                            {{ submission.learner.full_name }}
+                        </span>
+                        <span class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            Submitted: {{ submission.submitted_at|date:"M d, Y H:i" }}
+                        </span>
+                        {% if submission.is_late %}
+                            <span class="badge badge-warning">Late Submission</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if submission.text_response %}
+                    <div class="submission-content">
+                        <h4>Text Response:</h4>
+                        <div class="content-text">{{ submission.text_response|linebreaks }}</div>
+                    </div>
+                {% endif %}
+
+                {% if submission.attachment %}
+                    <div class="submission-file">
+                        <h4>Submitted File:</h4>
+                        <a href="{{ submission.attachment.url }}" target="_blank" class="btn btn-outline-primary">
+                            <i class="fas fa-download"></i> Download Submission File
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="grading-form">
+            <h3>Grade This Submission</h3>
+            <form method="post" action="{% url 'grade_submission' task.id submission.id %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    {{ form.marks_obtained.label_tag }}
+                    {{ form.marks_obtained }}
+                    {% if form.marks_obtained.errors %}
+                        <span class="error">{{ form.marks_obtained.errors.0 }}</span>
+                    {% endif %}
+                    <small class="help-text">Maximum marks: {{ task.total_marks }}</small>
+                </div>
+
+                <div class="form-group">
+                    {{ form.teacher_feedback.label_tag }}
+                    {{ form.teacher_feedback }}
+                    {% if form.teacher_feedback.errors %}
+                        <span class="error">{{ form.teacher_feedback.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="grade-preview">
+                    <h4>Grade Preview:</h4>
+                    <div class="grade-display">
+                        <span class="marks-input" id="marksDisplay">0</span>
+                        <span class="total-marks">/ {{ task.total_marks }}</span>
+                        <span class="percentage" id="percentageDisplay">(0%)</span>
+                    </div>
+                    <div class="grade-letter" id="gradeLetter">Grade: F</div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Grade
+                    </button>
+                    <a href="{% url 'task_submissions' task.id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const marksInput = document.getElementById('id_marks_obtained');
+    const marksDisplay = document.getElementById('marksDisplay');
+    const percentageDisplay = document.getElementById('percentageDisplay');
+    const gradeLetter = document.getElementById('gradeLetter');
+    const totalMarks = {{ task.total_marks }};
+    
+    function updateGradePreview() {
+        const marks = parseFloat(marksInput.value) || 0;
+        const percentage = totalMarks > 0 ? (marks / totalMarks * 100) : 0;
+        
+        marksDisplay.textContent = marks.toFixed(1);
+        percentageDisplay.textContent = `(${percentage.toFixed(1)}%)`;
+        
+        let grade = 'F';
+        if (percentage >= 80) grade = 'A';
+        else if (percentage >= 70) grade = 'B';
+        else if (percentage >= 60) grade = 'C';
+        else if (percentage >= 50) grade = 'D';
+        
+        gradeLetter.textContent = `Grade: ${grade}`;
+        gradeLetter.className = `grade-letter grade-${grade}`;
+    }
+    
+    // Update on input
+    marksInput.addEventListener('input', updateGradePreview);
+    
+    // Initial update
+    updateGradePreview();
+});
+</script>
+
+<style>
+.submission-preview {
+    margin-bottom: 2rem;
+}
+
+.preview-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.preview-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.preview-header h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    color: #333;
+}
+
+.submission-meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.submission-content,
+.submission-file {
+    margin-bottom: 1.5rem;
+}
+
+.submission-content h4,
+.submission-file h4 {
+    margin-bottom: 0.75rem;
+    color: #333;
+}
+
+.content-text {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 3px solid #2e86c1;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.grading-form {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.grading-form h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-group .error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.form-group .help-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.grade-preview {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.grade-preview h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.grade-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.marks-input {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2e86c1;
+}
+
+.total-marks {
+    font-size: 1.5rem;
+    color: #666;
+}
+
+.percentage {
+    font-size: 1.25rem;
+    color: #666;
+}
+
+.grade-letter {
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.grade-letter.grade-A {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.grade-letter.grade-B {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.grade-letter.grade-C {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.grade-letter.grade-D {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.grade-letter.grade-F {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.form-actions button,
+.form-actions a {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.form-actions .btn-primary {
+    background-color: #2e86c1;
+    color: white;
+}
+
+.form-actions .btn-primary:hover {
+    background-color: #1e5a8a;
+}
+
+.form-actions .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.form-actions .btn-secondary:hover {
+    background-color: #545b62;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+@media (max-width: 768px) {
+    .submission-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .grade-display {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .marks-input {
+        font-size: 1.5rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions button,
+    .form-actions a {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+
+{% block title %}My Tasks - School Portal{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-tasks"></i> My Tasks</h2>
+            <p>View and submit your assignments and tasks</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="tasks-container">
+            {% if tasks %}
+                {% for task in tasks %}
+                    <div class="task-card {% if task.is_overdue %}overdue{% endif %}">
+                        <div class="task-header">
+                            <div class="task-title">
+                                <h3>{{ task.title }}</h3>
+                                <span class="badge badge-{{ task.task_type }}">
+                                    {{ task.get_task_type_display }}
+                                </span>
+                            </div>
+                            <div class="task-meta">
+                                <span class="task-grade">{{ task.grade.grade_name }}</span>
+                                <span class="task-subject">{{ task.subject.name }}</span>
+                            </div>
+                        </div>
+
+                        <div class="task-body">
+                            <p class="task-description">{{ task.description }}</p>
+                            
+                            {% if task.text_content %}
+                                <div class="task-content">
+                                    <h5>Instructions:</h5>
+                                    <div class="task-text">{{ task.text_content|linebreaks }}</div>
+                                </div>
+                            {% endif %}
+                            
+                            {% if task.attachment %}
+                                <div class="task-attachment">
+                                    <h5>Attached File:</h5>
+                                    <a href="{{ task.attachment.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-download"></i> Download Task File
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="task-footer">
+                            <div class="task-dates">
+                                <div class="task-date">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    Posted: {{ task.created_at|date:"M d, Y" }}
+                                </div>
+                                <div class="task-date due-date">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Due: {{ task.due_date|date:"M d, Y H:i" }}
+                                    {% if task.is_overdue %}
+                                        <span class="badge badge-danger">Overdue</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="task-actions">
+                                {% if task.submission %}
+                                    <div class="submission-status">
+                                        <span class="badge badge-{{ task.submission.status }}">
+                                            {% if task.submission.status == 'submitted' %}
+                                                Submitted
+                                            {% elif task.submission.status == 'graded' %}
+                                                Graded: {{ task.submission.marks_obtained }}/{{ task.total_marks }}
+                                            {% elif task.submission.status == 'late' %}
+                                                Late Submission
+                                            {% endif %}
+                                        </span>
+                                        {% if task.submission.teacher_feedback %}
+                                            <p class="feedback">{{ task.submission.teacher_feedback }}</p>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <a href="{% url 'submit_task' task.id %}" class="btn btn-primary">
+                                        <i class="fas fa-upload"></i> Submit Task
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list fa-4x text-muted"></i>
+                    <h3>No Tasks Assigned</h3>
+                    <p>You don't have any tasks assigned yet. Check back later for new assignments.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<style>
+.tasks-container {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.task-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.task-card.overdue {
+    border-left: 4px solid #dc3545;
+}
+
+.task-header {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.task-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.task-title h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.25rem;
+}
+
+.task-meta {
+    display: flex;
+    gap: 1rem;
+}
+
+.task-grade, .task-subject {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.task-body {
+    padding: 1.5rem;
+}
+
+.task-description {
+    margin-bottom: 1rem;
+    color: #555;
+}
+
+.task-content {
+    margin-bottom: 1rem;
+}
+
+.task-content h5 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.task-text {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 3px solid #2e86c1;
+}
+
+.task-attachment {
+    margin-bottom: 1rem;
+}
+
+.task-attachment h5 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.task-footer {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-dates {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.task-date {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.task-date.due-date {
+    font-weight: 600;
+    color: #333;
+}
+
+.submission-status {
+    text-align: right;
+}
+
+.submission-status .badge {
+    margin-bottom: 0.5rem;
+}
+
+.feedback {
+    font-size: 0.875rem;
+    color: #28a745;
+    margin: 0;
+    font-style: italic;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.empty-state h3 {
+    margin: 1rem 0;
+    color: #333;
+}
+
+.badge-assignment {
+    background-color: #2e86c1;
+}
+
+.badge-quiz {
+    background-color: #f39c12;
+}
+
+.badge-project {
+    background-color: #27ae60;
+}
+
+.badge-homework {
+    background-color: #8e44ad;
+}
+
+.badge-submitted {
+    background-color: #17a2b8;
+}
+
+.badge-graded {
+    background-color: #28a745;
+}
+
+.badge-late {
+    background-color: #dc3545;
+}
+
+@media (max-width: 768px) {
+    .task-footer {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .task-actions {
+        width: 100%;
+    }
+    
+    .task-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

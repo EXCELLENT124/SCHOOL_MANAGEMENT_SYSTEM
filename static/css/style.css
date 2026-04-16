@@ -73,7 +73,7 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: var(--primary-color);
 }
@@ -83,19 +83,41 @@ a:hover {
     color: var(--accent-color);
 }
 
+.logo-image {
+    height: 85px;
+    width: auto;
+    max-width: 130px;
+}
+
 .nav-menu {
-    display: flex;
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 280px;
+    background: var(--bg-white);
     list-style: none;
-    gap: 2rem;
-    align-items: center;
+    gap: 0;
+    flex-direction: column;
+    padding: 1rem;
+    box-shadow: var(--shadow);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    z-index: 1000;
+}
+
+.nav-menu.active {
+    display: flex;
 }
 
 .nav-menu a {
     color: var(--text-dark);
     font-weight: 500;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border-radius: var(--radius);
     transition: var(--transition);
+    display: block;
+    width: 100%;
 }
 
 .nav-menu a:hover {
@@ -112,21 +134,38 @@ a:hover {
     background: var(--primary-dark);
 }
 
+.nav-container {
+    position: relative;
+}
+
 .hamburger {
-    display: none;
+    display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 0.75rem;
+    background: var(--primary-color);
+    border-radius: 6px;
+    z-index: 1000;
+    margin-left: auto;
 }
 
 .hamburger span {
     display: block;
-    width: 25px;
+    width: 28px;
     height: 3px;
-    background: var(--text-dark);
+    background: white;
     border-radius: 2px;
     transition: var(--transition);
+}
+
+.hamburger .menu-label {
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
 }
 
 /* ===== Main Content ===== */
@@ -228,6 +267,143 @@ a:hover {
     justify-content: center;
     gap: 1rem;
     margin-top: 2rem;
+}
+
+.hero-login-container {
+    max-width: 450px;
+    margin: 3rem auto 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.hero-login-container h3 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.login-type-selector {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.login-type-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.login-type-option:hover {
+    border-color: var(--primary-color);
+}
+
+.login-type-option input[type="radio"] {
+    display: none;
+}
+
+.login-type-option input[type="radio"]:checked + .option-label {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.option-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    transition: all 0.3s ease;
+}
+
+.option-label i {
+    font-size: 1.2rem;
+}
+
+.login-form {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-fields {
+    margin-bottom: 1.5rem;
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-fields .form-group {
+    margin-bottom: 1rem;
+}
+
+.login-fields .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.login-fields .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+/* Specific sizing for ID fields */
+#teacher_id {
+    max-width: 180px;
+}
+
+#learner_id {
+    max-width: 200px;
+}
+
+/* PIN fields remain smaller */
+input[name="pin"], input[name="teacher_pin"] {
+    max-width: 120px;
+}
+
+.login-fields .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.btn-full {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+}
+
+.login-links {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.login-links a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.login-links a:hover {
+    text-decoration: underline;
 }
 
 /* ===== Buttons ===== */
@@ -855,6 +1031,10 @@ a:hover {
     overflow: hidden;
 }
 
+.dashboard-card.blue-border-card {
+    border: 2px solid #2e86c1;
+}
+
 .dashboard-card.full-width {
     grid-column: 1 / -1;
 }
@@ -1419,6 +1599,54 @@ a:hover {
     margin: 0.5rem 0;
 }
 
+.progress-report-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f1f7ff;
+    border-radius: 8px;
+    border: 1px solid #d6e9fe;
+}
+
+.progress-report-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.progress-report-header p {
+    margin: 0.5rem 0 0;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.progress-report-table-wrap {
+    margin: 1rem 0;
+    overflow-x: auto;
+}
+
+.progress-report-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.progress-report-table th,
+.progress-report-table td {
+    padding: 0.85rem 0.9rem;
+    border: 1px solid #e2e8f0;
+}
+
+.progress-report-table th {
+    background: #eef6ff;
+    color: var(--primary-color);
+    text-align: left;
+}
+
+.progress-report-table td.text-right {
+    text-align: right;
+}
+
 /* Contact Info */
 .contact-info {
     display: grid;
@@ -1769,23 +1997,18 @@ a:hover {
 /* Responsive */
 @media (max-width: 768px) {
     .nav-menu {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
         width: 100%;
-        background: var(--bg-white);
-        flex-direction: column;
-        padding: 1rem;
-        box-shadow: var(--shadow);
-    }
-    
-    .nav-menu.active {
-        display: flex;
+        right: 0;
+        left: 0;
+        margin-top: 0.5rem;
     }
     
     .hamburger {
-        display: flex;
+        padding: 0.5rem;
+    }
+    
+    .hamburger .menu-label {
+        display: none;
     }
     
     .hero h1 {
@@ -1799,6 +2022,25 @@ a:hover {
     
     .hero-buttons {
         flex-direction: column;
+    }
+
+    .login-options {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-login-container {
+        padding: 1.5rem;
+    }
+    
+    .login-type-selector {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .login-links {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
     }
     
     .form-grid {

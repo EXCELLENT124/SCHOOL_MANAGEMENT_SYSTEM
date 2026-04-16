@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Task - School Portal{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-upload"></i> Submit Task</h2>
+            <p>{{ task.title }}</p>
+        </div>
+
+        <div class="task-details">
+            <div class="task-info-card">
+                <h3>Task Information</h3>
+                <div class="task-info-grid">
+                    <div class="info-item">
+                        <label>Type:</label>
+                        <span class="badge badge-{{ task.task_type }}">{{ task.get_task_type_display }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Grade:</label>
+                        <span>{{ task.grade.grade_name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Subject:</label>
+                        <span>{{ task.subject.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Total Marks:</label>
+                        <span>{{ task.total_marks }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Due Date:</label>
+                        <span class="{% if task.is_overdue %}text-danger{% endif %}">
+                            {{ task.due_date|date:"M d, Y H:i" }}
+                            {% if task.is_overdue %}
+                                <span class="badge badge-danger">Overdue</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                {% if task.text_content %}
+                    <div class="task-instructions">
+                        <h4>Instructions:</h4>
+                        <div class="instructions-content">{{ task.text_content|linebreaks }}</div>
+                    </div>
+                {% endif %}
+                
+                {% if task.attachment %}
+                    <div class="task-attachment">
+                        <h4>Attached File:</h4>
+                        <a href="{{ task.attachment.url }}" target="_blank" class="btn btn-outline-primary">
+                            <i class="fas fa-download"></i> Download Task File
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="submission-form">
+            <h3>Submit Your Work</h3>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% if form.text_content %}
+                    <div class="form-group">
+                        {{ form.text_response.label_tag }}
+                        {{ form.text_response }}
+                        {% if form.text_response.errors %}
+                            <span class="error">{{ form.text_response.errors.0 }}</span>
+                        {% endif %}
+                        {% if form.text_response.help_text %}
+                            <small class="help-text">{{ form.text_response.help_text }}</small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                {% if form.attachment %}
+                    <div class="form-group">
+                        {{ form.attachment.label_tag }}
+                        {{ form.attachment }}
+                        {% if form.attachment.errors %}
+                            <span class="error">{{ form.attachment.errors.0 }}</span>
+                        {% endif %}
+                        {% if form.attachment.help_text %}
+                            <small class="help-text">{{ form.attachment.help_text }}</small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Submit Task
+                    </button>
+                    <a href="{% url 'learner_tasks' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<style>
+.task-details {
+    margin-bottom: 2rem;
+}
+
+.task-info-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+
+.task-info-card h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.task-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-item label {
+    font-weight: 600;
+    color: #666;
+    margin: 0;
+}
+
+.task-instructions,
+.task-attachment {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.task-instructions h4,
+.task-attachment h4 {
+    margin-bottom: 0.75rem;
+    color: #333;
+}
+
+.instructions-content {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 3px solid #2e86c1;
+    white-space: pre-wrap;
+}
+
+.submission-form {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.submission-form h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group textarea,
+.form-group input[type="file"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+.form-group .error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.form-group .help-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.form-actions button,
+.form-actions a {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.form-actions .btn-primary {
+    background-color: #2e86c1;
+    color: white;
+}
+
+.form-actions .btn-primary:hover {
+    background-color: #1e5a8a;
+}
+
+.form-actions .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.form-actions .btn-secondary:hover {
+    background-color: #545b62;
+}
+
+.badge-assignment {
+    background-color: #2e86c1;
+}
+
+.badge-quiz {
+    background-color: #f39c12;
+}
+
+.badge-project {
+    background-color: #27ae60;
+}
+
+.badge-homework {
+    background-color: #8e44ad;
+}
+
+@media (max-width: 768px) {
+    .task-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions button,
+    .form-actions a {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

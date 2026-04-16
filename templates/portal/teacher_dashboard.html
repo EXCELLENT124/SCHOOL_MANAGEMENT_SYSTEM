@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Dashboard - School Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chalkboard-teacher"></i> Teacher Dashboard</h2>
+                <a href="{% url 'teacher_logout' %}" class="btn btn-outline-danger">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h4 class="card-title">Welcome, {{ teacher.first_name }} {{ teacher.last_name }}!</h4>
+                    <p class="card-text mb-1">Teacher ID: {{ teacher.teacher_id }}</p>
+                    <p class="card-text mb-1">
+                        <i class="fas fa-briefcase"></i> Employment Status: 
+                        <span class="badge {% if teacher.is_active %}bg-success{% else %}bg-warning{% endif %}">
+                            {% if teacher.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </p>
+                    <p class="card-text mb-0">
+                        <i class="fas fa-calendar-alt"></i> Date of Commencement: {{ teacher.hire_date|date:"F j, Y" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>{{ total_tasks }}</h3>
+                    <p>Total Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-book fa-2x text-info mb-2"></i>
+                    <h5 class="card-title">{{ assigned_subjects|length }}</h5>
+                    <p class="card-text">Subjects Teaching</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <a href="{% url 'submit_marks' %}" class="btn btn-success btn-lg w-100 mb-3">
+                                <i class="fas fa-edit"></i> Submit Marks
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assigned Classes and Subjects -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> My Teaching Assignments</h5>
+                </div>
+                <div class="card-body">
+                    {% if grade_subjects %}
+                        <div class="row">
+                            {% for grade_subject in grade_subjects %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-primary">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-graduation-cap text-primary"></i> 
+                                                {{ grade_subject.grade.name }}
+                                                <span class="badge bg-info ms-2">{{ grade_subject.learner_count }} learners</span>
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if grade_subject.subjects %}
+                                                <p class="mb-2"><strong>Subjects:</strong></p>
+                                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                                    {% for subject in grade_subject.subjects %}
+                                                        <span class="badge bg-secondary">{{ subject.name }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                                <div class="d-grid gap-2">
+                                                    <a href="{% url 'submit_marks' %}?grade={{ grade_subject.grade.id }}" 
+                                                       class="btn btn-success btn-sm">
+                                                        <i class="fas fa-edit"></i> Submit Marks
+                                                    </a>
+                                                    <a href="{% url 'view_class_list' grade_subject.grade.id %}" 
+                                                       class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-users"></i> View Class List
+                                                    </a>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted mb-2">No subjects assigned for this grade.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No teaching assignments found. Please contact the administration.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Submissions -->
+    {% if recent_exams %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Recent Mark Submissions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Learner</th>
+                                    <th>Subject</th>
+                                    <th>Exam Type</th>
+                                    <th>Marks</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exam in recent_exams %}
+                                    <tr>
+                                        <td>{{ exam.learner.full_name }}</td>
+                                        <td>{{ exam.subject }}</td>
+                                        <td>{{ exam.get_exam_type_display }}</td>
+                                        <td>{{ exam.marks }}%</td>
+                                        <td>{{ exam.date_taken|date:"M d, Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

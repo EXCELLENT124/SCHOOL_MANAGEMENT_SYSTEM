@@ -250,6 +250,7 @@ class Exam(models.Model):
     ]
     
     learner = models.ForeignKey(Learner, on_delete=models.CASCADE, related_name='exams')
+    teacher = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True, blank=True, related_name='submitted_exams')
     subject = models.CharField(max_length=100)
     exam_type = models.CharField(max_length=20, choices=EXAM_TYPES)
     marks = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0), MaxValueValidator(100)])
@@ -396,5 +397,137 @@ class ProgressReport(models.Model):
         unique_together = ['learner', 'year', 'term']
         ordering = ['-year', '-term']
     
+def generate_teacher_id():
+    """Generate a unique teacher ID."""
+    return f"TCH{uuid.uuid4().hex[:8].upper()}"
+
+
+def generate_teacher_pin():
+    """Generate a 6-digit PIN for teachers."""
+    return f"{uuid.uuid4().int % 900000 + 100000}"
+
+
+class Teacher(models.Model):
+    """Teacher model for managing teaching staff."""
+    GENDER_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+    ]
+    
+    teacher_id = models.CharField(max_length=20, unique=True, default=generate_teacher_id, editable=False)
+    pin = models.CharField(max_length=6, default=generate_teacher_pin, editable=False)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    date_of_birth = models.DateField()
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=20)
+    address = models.TextField()
+    employee_number = models.CharField(max_length=20, unique=True, blank=True)
+    hire_date = models.DateField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    grades = models.ManyToManyField(Grade, related_name='teachers', blank=True)
+    subjects = models.ManyToManyField(Subject, related_name='teachers', blank=True)
+    
+    class Meta:
+        ordering = ['last_name', 'first_name']
+    
     def __str__(self):
-        return f"{self.learner} - Year {self.year} Term {self.term}"
+        return f"{self.first_name} {self.last_name} ({self.teacher_id})"
+    
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+
+def task_upload_path(instance, filename):
+    """Custom upload path for task files."""
+    ext = filename.split('.')[-1]
+    return f'tasks/{instance.teacher.teacher_id}/{instance.id}_{timezone.now().strftime("%Y%m%d")}.{ext}'
+
+
+class Task(models.Model):
+    """Task/Assignment/Quiz model for teachers to create tasks for learners."""
+    TASK_TYPES = [
+        ('assignment', 'Assignment'),
+        ('quiz', 'Quiz'),
+        ('project', 'Project'),
+        ('homework', 'Homework'),
+    ]
+    
+    CONTENT_TYPES = [
+        ('text', 'Text Only'),
+        ('pdf', 'PDF Document'),
+        ('image', 'Image'),
+        ('mixed', 'Text + File'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    task_type = models.CharField(max_length=20, choices=TASK_TYPES, default='assignment')
+    content_type = models.CharField(max_length=10, choices=CONTENT_TYPES, default='text')
+    
+    # Teacher and assignment details
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='tasks')
+    grade = models.ForeignKey(Grade, on_delete=models.CASCADE, related_name='tasks')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='tasks')
+    
+    # Task content
+    text_content = models.TextField(blank=True, help_text="Text content of the task")
+    attachment = models.FileField(upload_to=task_upload_path, blank=True, null=True,
+                                help_text="PDF or image file for the task")
+    
+    # Dates
+    created_at = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+    
+    # Marks
+    total_marks = models.DecimalField(max_digits=5, decimal_places=2, default=100)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.title} - {self.grade.name} ({self.subject.name})"
+    
+    def is_overdue(self):
+        return timezone.now() > self.due_date
+
+
+class TaskSubmission(models.Model):
+    """Learner submissions for tasks."""
+    STATUS_CHOICES = [
+        ('submitted', 'Submitted'),
+        ('graded', 'Graded'),
+        ('late', 'Late Submission'),
+    ]
+    
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='submissions')
+    learner = models.ForeignKey(Learner, on_delete=models.CASCADE, related_name='task_submissions')
+    
+    # Submission content
+    text_response = models.TextField(blank=True, help_text="Text response from learner")
+    attachment = models.FileField(upload_to='task_submissions/', blank=True, null=True,
+                                help_text="File submission from learner")
+    
+    # Status and grading
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
+    marks_obtained = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    teacher_feedback = models.TextField(blank=True)
+    
+    # Dates
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    graded_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ['task', 'learner']
+        ordering = ['-submitted_at']
+    
+    def __str__(self):
+        return f"{self.learner.full_name} - {self.task.title}"
+    
+    @property
+    def is_late(self):
+        return self.submitted_at > self.task.due_date

@@ -13,8 +13,8 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="{% url 'home' %}" class="nav-logo">
-                <i class="fas fa-school"></i>
-                <span>School Portal</span>
+                <img src="{% static 'images/logo.png' %}" alt="School Logo" class="logo-image">
+                <span>MAHASHE SECONDARY<br> SCHOOL PORTAL</span>
             </a>
             
             <ul class="nav-menu">
@@ -23,6 +23,7 @@
                 <li><a href="{% url 'admission_status_check' %}">Check Status</a></li>
                 <li><a href="{% url 'create_pin' %}">Create PIN</a></li>
                 <li><a href="{% url 'available_spaces' %}">Available Spaces</a></li>
+                <li><a href="{% url 'teacher_login' %}">Teacher Portal</a></li>
                 {% if request.session.is_learner %}
                     <li><a href="{% url 'learner_dashboard' %}">My Dashboard</a></li>
                     <li><a href="{% url 'learner_logout' %}">Logout</a></li>
@@ -31,10 +32,11 @@
                 {% endif %}
             </ul>
             
-            <div class="hamburger">
+            <div class="hamburger" title="Click to open menu">
                 <span></span>
                 <span></span>
                 <span></span>
+                <small class="menu-label">Menu</small>
             </div>
         </div>
     </nav>

@@ -3,6 +3,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+
+
+def teacher_required(view_func):
+    """Decorator to require teacher login."""
+    def wrapper(request, *args, **kwargs):
+        teacher_id = request.session.get('teacher_id')
+        if not teacher_id:
+            return redirect('teacher_login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse, FileResponse
 from django.db.models import Count, Avg
@@ -15,11 +25,12 @@ from reportlab.lib.units import cm
 
 from .models import (
     Grade, Application, Document, Learner, Exam, 
-    Registration, FinancialInfo, Stream, ProgressReport
+    Registration, FinancialInfo, Stream, ProgressReport, Teacher, Task, TaskSubmission
 )
 from .forms import (
     ApplicationForm, DocumentUploadForm, LearnerLoginForm,
-    RegistrationForm, StudentEnquiryForm, CreatePINForm
+    RegistrationForm, StudentEnquiryForm, CreatePINForm, CreateTeacherPINForm, SubmitMarksForm,
+    TeacherLoginForm, TaskForm, TaskSubmissionForm, TaskGradingForm
 )
 
 
@@ -31,6 +42,55 @@ def home(request):
         'total_learners': Learner.objects.filter(admission_status='registered').count(),
     }
     return render(request, 'portal/home.html', context)
+
+
+def home_login(request):
+    """Combined login handler for both learners and teachers."""
+    if request.method == 'POST':
+        login_type = request.POST.get('login_type', 'learner')
+        
+        if login_type == 'teacher':
+            # Teacher login
+            teacher_id = request.POST.get('teacher_id', '').strip().upper()
+            pin = request.POST.get('teacher_pin', '')
+            
+            if teacher_id and pin:
+                try:
+                    teacher = Teacher.objects.get(teacher_id=teacher_id, pin=pin, is_active=True)
+                    request.session['teacher_id'] = teacher.id
+                    request.session['teacher_name'] = teacher.full_name
+                    request.session['is_teacher'] = True
+                    messages.success(request, f'Welcome back, {teacher.full_name}!')
+                    return redirect('teacher_dashboard')
+                except Teacher.DoesNotExist:
+                    messages.error(request, 'Invalid Teacher ID or PIN.')
+            else:
+                messages.error(request, 'Please provide both Teacher ID and PIN.')
+                
+        else:
+            # Learner login
+            study_number = request.POST.get('study_number', '').strip().upper()
+            pin = request.POST.get('pin', '')
+            
+            print(f"DEBUG: Learner login attempt - Study Number: '{study_number}', PIN: '{pin}'")  # Debug line
+            
+            if study_number and pin:
+                try:
+                    learner = Learner.objects.get(study_number=study_number, pin=pin)
+                    print(f"DEBUG: Learner found: {learner.first_name} {learner.last_name}")  # Debug line
+                    request.session['learner_id'] = learner.id
+                    request.session['is_learner'] = True
+                    messages.success(request, f'Welcome, {learner.first_name}!')
+                    print(f"DEBUG: Redirecting to learner_dashboard")  # Debug line
+                    return redirect('learner_dashboard')
+                except Learner.DoesNotExist:
+                    print(f"DEBUG: Learner not found for study_number: {study_number}")  # Debug line
+                    messages.error(request, 'Invalid Study Number or PIN.')
+            else:
+                print(f"DEBUG: Missing study_number or pin")  # Debug line
+                messages.error(request, 'Please provide both Study Number and PIN.')
+    
+    return redirect('home')
 
 
 def admission_status_check(request):
@@ -96,6 +156,61 @@ def upload_documents(request, application_id):
         'application': application,
         'uploaded_documents': uploaded_documents
     })
+
+
+def home_login(request):
+    """Handle login from home page for both learners and teachers."""
+    if request.method == 'POST':
+        login_type = request.POST.get('login_type')
+        
+        if login_type == 'teacher':
+            # Handle teacher login
+            teacher_id = request.POST.get('teacher_id')
+            pin = request.POST.get('teacher_pin')
+            
+            if teacher_id and pin:
+                try:
+                    teacher = Teacher.objects.get(teacher_id=teacher_id.upper().strip())
+                    
+                    if teacher.pin == pin and teacher.is_active:
+                        request.session['teacher_id'] = teacher.id
+                        request.session['is_teacher'] = True
+                        messages.success(request, f'Welcome, {teacher.first_name}!')
+                        return redirect('teacher_dashboard')
+                    else:
+                        messages.error(request, 'Incorrect PIN or teacher account is inactive.')
+                        
+                except Teacher.DoesNotExist:
+                    messages.error(request, 'Teacher ID not found.')
+            else:
+                messages.error(request, 'Please provide both Teacher ID and PIN.')
+                
+        elif login_type == 'learner':
+            # Handle learner login
+            study_number = request.POST.get('study_number')
+            pin = request.POST.get('pin')
+            
+            if study_number and pin:
+                try:
+                    learner = Learner.objects.get(study_number=study_number.upper().strip())
+                    
+                    if learner.pin == pin:
+                        request.session['learner_id'] = learner.id
+                        request.session['is_learner'] = True
+                        messages.success(request, f'Welcome, {learner.first_name}!')
+                        return redirect('learner_dashboard')
+                    else:
+                        messages.error(request, 'Incorrect PIN.')
+                        
+                except Learner.DoesNotExist:
+                    messages.error(request, 'Study Number not found.')
+            else:
+                messages.error(request, 'Please provide both Study Number and PIN.')
+        else:
+            messages.error(request, 'Invalid login type.')
+    
+    # If not POST or login failed, redirect back to home
+    return redirect('home')
 
 
 def learner_login(request):
@@ -224,7 +339,140 @@ def create_pin(request):
     return render(request, 'portal/create_pin.html', {'form': form})
 
 
+def create_teacher_pin(request):
+    """Allow teachers to create their PIN."""
+    if request.method == 'POST':
+        form = CreateTeacherPINForm(request.POST)
+        if form.is_valid():
+            teacher_id = form.cleaned_data['teacher_id']
+            pin = form.cleaned_data['pin']
+            
+            try:
+                teacher = Teacher.objects.get(teacher_id=teacher_id)
+                
+                # Update teacher PIN
+                teacher.pin = pin
+                teacher.save()
+                
+                messages.success(
+                    request, 
+                    f'PIN created successfully! Your Teacher ID is: {teacher_id}. '
+                    'You can now login using your Teacher ID and PIN.'
+                )
+                return redirect('teacher_login')
+                
+            except Teacher.DoesNotExist:
+                messages.error(request, 'Teacher not found.')
+    else:
+        form = CreateTeacherPINForm()
+    
+    return render(request, 'portal/create_teacher_pin.html', {'form': form})
+
+
+
+
+
+def teacher_required(view_func):
+    """Decorator to check if teacher is logged in."""
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('is_teacher') or not request.session.get('teacher_id'):
+            messages.error(request, 'Please login to access this page.')
+            return redirect('teacher_login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@teacher_required
+def teacher_dashboard(request):
+    """Teacher dashboard with assigned classes and subjects."""
+    teacher_id = request.session.get('teacher_id')
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    
+    # Get teacher's assigned grades and subjects
+    assigned_grades = teacher.grades.all()
+    assigned_subjects = teacher.subjects.all()
+    
+    # Get learners in teacher's grades
+    learners_in_grades = Learner.objects.filter(
+        grade__in=assigned_grades,
+        admission_status='registered'
+    ).distinct()
+    
+    # Get recent exams submitted by this teacher
+    recent_exams = Exam.objects.filter(teacher=teacher).order_by('-date_taken')[:10]
+    
+    # Create a structure showing subjects per grade
+    grade_subjects = []
+    for grade in assigned_grades:
+        subjects_for_grade = assigned_subjects.filter(stream__grades=grade).distinct()
+        grade_subjects.append({
+            'grade': grade,
+            'subjects': subjects_for_grade,
+            'learner_count': learners_in_grades.filter(grade=grade).count()
+        })
+    
+    context = {
+        'teacher': teacher,
+        'assigned_grades': assigned_grades,
+        'assigned_subjects': assigned_subjects,
+        'learners_count': learners_in_grades.count(),
+        'recent_exams': recent_exams,
+        'grade_subjects': grade_subjects,
+    }
+    return render(request, 'portal/teacher_dashboard.html', context)
+
+
+@teacher_required
+def submit_marks(request):
+    """Allow teachers to submit learner marks."""
+    teacher_id = request.session.get('teacher_id')
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    
+    # Get grade filter from URL parameters
+    grade_id = request.GET.get('grade')
+    selected_grade = None
+    if grade_id:
+        try:
+            selected_grade = Grade.objects.get(id=grade_id, teachers=teacher)
+        except Grade.DoesNotExist:
+            messages.warning(request, 'Invalid grade selected.')
+    
+    if request.method == 'POST':
+        form = SubmitMarksForm(request.POST, teacher=teacher)
+        if form.is_valid():
+            exam = form.save(teacher=teacher)
+            messages.success(
+                request, 
+                f'Marks submitted successfully for {exam.learner.full_name} - {exam.subject} ({exam.exam_type})'
+            )
+            return redirect('submit_marks')
+    else:
+        form = SubmitMarksForm(teacher=teacher)
+    
+    # Get recent submissions by this teacher
+    recent_submissions = Exam.objects.filter(teacher=teacher).order_by('-date_taken')[:5]
+    
+    # Get available grades and subjects for filtering display
+    available_grades = teacher.grades.all()
+    
+    context = {
+        'teacher': teacher,
+        'form': form,
+        'recent_submissions': recent_submissions,
+        'available_grades': available_grades,
+        'selected_grade': selected_grade,
+    }
+    return render(request, 'portal/submit_marks.html', context)
+
+
 def learner_required(view_func):
+    """Decorator to check if learner is logged in."""
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('is_learner') or not request.session.get('learner_id'):
+            messages.error(request, 'Please login to access this page.')
+            return redirect('learner_login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
     """Decorator to check if learner is logged in."""
     def wrapper(request, *args, **kwargs):
         if not request.session.get('is_learner') or not request.session.get('learner_id'):
@@ -338,11 +586,18 @@ def academic_registration(request):
         registration = Registration.objects.get(learner=learner, academic_year=current_year)
     except Registration.DoesNotExist:
         registration = None
-    
+
     # Get available subjects based on selected stream
     available_subjects = []
     selected_stream = None
-    
+
+    # Get financial info if it exists
+    financial_info = None
+    try:
+        financial_info = learner.financial_info
+    except FinancialInfo.DoesNotExist:
+        financial_info = None
+
     if request.method == 'POST' and can_register:
         # Get stream from POST data
         stream_id = request.POST.get('stream')
@@ -353,25 +608,50 @@ def academic_registration(request):
                 available_subjects = selected_stream.get_subject_list()
             except Stream.DoesNotExist:
                 pass
-        
+
         form = RegistrationForm(request.POST, instance=registration, available_subjects=available_subjects)
         if form.is_valid():
             registration = form.save(commit=False)
             registration.learner = learner
             registration.academic_year = current_year
-            
+
             if 'accept_rules' in request.POST:
                 registration.rules_accepted = True
                 registration.rules_accepted_date = timezone.now()
-            
+
             registration.save()
-            
+
             # Update learner stream
             if registration.stream:
                 learner.stream = registration.stream
                 learner.admission_status = 'registered'
                 learner.save()
-            
+
+            # Save scholarship and bursary details to financial info
+            financial_info, _ = FinancialInfo.objects.get_or_create(learner=learner)
+            scholarship_choice = form.cleaned_data.get('scholarship_choice')
+            bursary_choice = form.cleaned_data.get('bursary_choice')
+            scholarship_name = form.cleaned_data.get('scholarship_name', '').strip()
+            bursary_name = form.cleaned_data.get('bursary_name', '').strip()
+
+            if scholarship_choice == 'yes':
+                financial_info.scholarship_status = 'partial'
+                financial_info.scholarship_details = scholarship_name
+            else:
+                financial_info.scholarship_status = 'none'
+                financial_info.scholarship_amount = 0
+                financial_info.scholarship_details = ''
+
+            if bursary_choice == 'yes':
+                financial_info.bursary_status = 'pending'
+                financial_info.bursary_details = bursary_name
+            else:
+                financial_info.bursary_status = 'none'
+                financial_info.bursary_amount = 0
+                financial_info.bursary_details = ''
+
+            financial_info.save()
+
             messages.success(request, 'Registration completed successfully! You have registered for: ' + registration.subjects)
             return redirect('academic_registration')
     else:
@@ -386,11 +666,20 @@ def academic_registration(request):
                 available_subjects = selected_stream.get_subject_list()
             except Stream.DoesNotExist:
                 pass
-        
+
+        initial_data = {'stream': selected_stream.id if selected_stream else None}
+        if financial_info:
+            initial_data.update({
+                'scholarship_choice': 'yes' if financial_info.scholarship_status != 'none' else 'no',
+                'scholarship_name': financial_info.scholarship_details,
+                'bursary_choice': 'yes' if financial_info.bursary_status != 'none' else 'no',
+                'bursary_name': financial_info.bursary_details,
+            })
+
         form = RegistrationForm(
-            instance=registration, 
+            instance=registration,
             available_subjects=available_subjects,
-            initial={'stream': selected_stream.id if selected_stream else None}
+            initial=initial_data
         )
     
     # Create a dictionary of stream subjects for JavaScript
@@ -540,7 +829,25 @@ def student_enquiry(request):
         registration = Registration.objects.get(learner=learner, academic_year=current_year)
     except Registration.DoesNotExist:
         registration = None
-    
+
+    # Build progress report subjects and marks list
+    subjects_with_marks = []
+    if registration:
+        registered_subjects = [s.strip() for s in registration.subjects.split(',') if s.strip()]
+        if latest_report:
+            exams = learner.exams.filter(year=latest_report.year, term=latest_report.term)
+            marks_map = {exam.subject: exam.marks for exam in exams}
+        else:
+            marks_map = {}
+
+        subjects_with_marks = [
+            {
+                'subject': subject,
+                'marks': marks_map.get(subject, None)
+            }
+            for subject in registered_subjects
+        ]
+
     # Get uploaded documents (if any learner documents exist)
     learner_documents = []
     if application:
@@ -552,6 +859,7 @@ def student_enquiry(request):
         'latest_report': latest_report,
         'registration': registration,
         'documents': learner_documents,
+        'subjects_with_marks': subjects_with_marks,
     }
     return render(request, 'portal/student_enquiry.html', context)
 
@@ -570,6 +878,221 @@ def view_certificate(request, document_id):
         return redirect('student_enquiry')
     
     return FileResponse(document.file)
+
+
+# Teacher Views
+def teacher_login(request):
+    """Teacher login view."""
+    if request.method == 'POST':
+        form = TeacherLoginForm(request.POST)
+        if form.is_valid():
+            teacher = form.cleaned_data['teacher']
+            # Store teacher in session
+            request.session['teacher_id'] = teacher.id
+            request.session['teacher_name'] = teacher.full_name
+            request.session['is_teacher'] = True
+            messages.success(request, f'Welcome back, {teacher.full_name}!')
+            return redirect('teacher_dashboard')
+    else:
+        form = TeacherLoginForm()
+    
+    return render(request, 'portal/teacher_login.html', {'form': form})
+
+
+def teacher_logout(request):
+    """Teacher logout view."""
+    if 'teacher_id' in request.session:
+        del request.session['teacher_id']
+    if 'teacher_name' in request.session:
+        del request.session['teacher_name']
+    request.session['is_teacher'] = False
+    messages.info(request, 'You have been logged out successfully.')
+    return redirect('teacher_login')
+
+
+@teacher_required
+def teacher_dashboard(request):
+    """Teacher dashboard view."""
+    teacher_id = request.session.get('teacher_id')
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    
+    # Get teacher's tasks
+    tasks = Task.objects.filter(teacher=teacher).order_by('-created_at')
+    
+    # Get statistics
+    total_tasks = tasks.count()
+    active_tasks = tasks.filter(is_active=True).count()
+    total_submissions = TaskSubmission.objects.filter(task__teacher=teacher).count()
+    
+    context = {
+        'teacher': teacher,
+        'tasks': tasks[:5],  # Show recent 5 tasks
+        'total_tasks': total_tasks,
+        'active_tasks': active_tasks,
+        'total_submissions': total_submissions,
+    }
+    return render(request, 'portal/teacher_dashboard.html', context)
+
+
+@teacher_required
+def create_task(request):
+    """Create a new task."""
+    teacher_id = request.session.get('teacher_id')
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    
+    if request.method == 'POST':
+        form = TaskForm(request.POST, request.FILES, teacher=teacher)
+        if form.is_valid():
+            task = form.save(commit=False)
+            task.teacher = teacher
+            task.save()
+            messages.success(request, f'Task "{task.title}" has been created successfully!')
+            return redirect('teacher_dashboard')
+    else:
+        form = TaskForm(teacher=teacher)
+    
+    return render(request, 'portal/create_task.html', {'form': form, 'teacher': teacher})
+
+
+@teacher_required
+def edit_task(request, task_id):
+    """Edit an existing task."""
+    teacher_id = request.session.get('teacher_id')
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    task = get_object_or_404(Task, id=task_id, teacher=teacher)
+    
+    if request.method == 'POST':
+        form = TaskForm(request.POST, request.FILES, teacher=teacher, instance=task)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Task "{task.title}" has been updated successfully!')
+            return redirect('teacher_dashboard')
+    else:
+        form = TaskForm(teacher=teacher, instance=task)
+    
+    return render(request, 'portal/edit_task.html', {'form': form, 'task': task, 'teacher': teacher})
+
+
+@teacher_required
+def task_submissions(request, task_id):
+    """View and grade task submissions."""
+    teacher_id = request.session.get('teacher_id')
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    task = get_object_or_404(Task, id=task_id, teacher=teacher)
+    
+    submissions = task.submissions.all().order_by('-submitted_at')
+    
+    context = {
+        'teacher': teacher,
+        'task': task,
+        'submissions': submissions,
+    }
+    return render(request, 'portal/task_submissions.html', context)
+
+
+@teacher_required
+def grade_submission(request, task_id, submission_id):
+    """Grade a task submission."""
+    teacher_id = request.session.get('teacher_id')
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    task = get_object_or_404(Task, id=task_id, teacher=teacher)
+    submission = get_object_or_404(TaskSubmission, id=submission_id, task=task)
+    
+    if request.method == 'POST':
+        form = TaskGradingForm(request.POST, instance=submission)
+        if form.is_valid():
+            graded_submission = form.save(commit=False)
+            graded_submission.graded_by = teacher
+            graded_submission.save()
+            messages.success(request, f'Submission graded successfully! Marks: {graded_submission.marks_obtained}/{task.total_marks}')
+            return redirect('task_submissions', task_id=task.id)
+    else:
+        form = TaskGradingForm(instance=submission)
+    
+    context = {
+        'teacher': teacher,
+        'task': task,
+        'submission': submission,
+        'form': form,
+    }
+    return render(request, 'portal/grade_submission.html', context)
+
+
+# Learner Views for Tasks
+@learner_required
+def learner_tasks(request):
+    """View tasks assigned to the learner."""
+    learner_id = request.session.get('learner_id')
+    learner = get_object_or_404(Learner, id=learner_id)
+    
+    # Get tasks for learner's grade and subjects
+    learner_subjects = [s.strip() for s in learner.registration.subjects.split(',')]
+    tasks = Task.objects.filter(
+        grade=learner.grade,
+        subject__name__in=learner_subjects,
+        is_active=True
+    ).order_by('due_date')
+    
+    # Add submission status
+    for task in tasks:
+        try:
+            submission = TaskSubmission.objects.get(task=task, learner=learner)
+            task.submission = submission
+        except TaskSubmission.DoesNotExist:
+            task.submission = None
+    
+    context = {
+        'learner': learner,
+        'tasks': tasks,
+    }
+    return render(request, 'portal/learner_tasks.html', context)
+
+
+@learner_required
+def submit_task(request, task_id):
+    """Submit a task."""
+    learner_id = request.session.get('learner_id')
+    learner = get_object_or_404(Learner, id=learner_id)
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Check if task is for learner's grade and subject
+    learner_subjects = [s.strip() for s in learner.registration.subjects.split(',')]
+    if task.grade != learner.grade or task.subject.name not in learner_subjects:
+        messages.error(request, 'You are not authorized to submit this task.')
+        return redirect('learner_tasks')
+    
+    # Check if already submitted
+    try:
+        existing_submission = TaskSubmission.objects.get(task=task, learner=learner)
+        messages.info(request, 'You have already submitted this task.')
+        return redirect('learner_tasks')
+    except TaskSubmission.DoesNotExist:
+        pass
+    
+    if request.method == 'POST':
+        form = TaskSubmissionForm(request.POST, request.FILES, task=task)
+        if form.is_valid():
+            submission = form.save(commit=False)
+            submission.task = task
+            submission.learner = learner
+            submission.save()
+            
+            # Update status if late
+            if submission.submitted_at > task.due_date:
+                submission.status = 'late'
+                submission.save()
+            
+            messages.success(request, 'Task submitted successfully!')
+            return redirect('learner_tasks')
+    else:
+        form = TaskSubmissionForm(task=task)
+    
+    context = {
+        'learner': learner,
+        'task': task,
+        'form': form,
+    }
+    return render(request, 'portal/submit_task.html', context)
 
 
 def api_grade_spaces(request):

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     Grade, Application, Document, Learner, 
-    Exam, Registration, FinancialInfo, Stream, Subject
+    Exam, Registration, FinancialInfo, Stream, Subject, Teacher
 )
 
 @admin.register(Subject)
@@ -115,3 +115,103 @@ class FinancialInfoAdmin(admin.ModelAdmin):
     list_display = ['learner', 'tuition_fees', 'scholarship_status', 'bursary_status', 'payment_status', 'total_paid']
     list_filter = ['scholarship_status', 'bursary_status', 'payment_status']
     search_fields = ['learner__study_number', 'learner__first_name', 'learner__last_name']
+
+@admin.register(Teacher)
+class TeacherAdmin(admin.ModelAdmin):
+    list_display = ['teacher_id', 'first_name', 'last_name', 'email', 'is_active', 'subject_count', 'grade_count', 'pin_status']
+    list_filter = ['is_active', 'grades', 'subjects']
+    search_fields = ['teacher_id', 'first_name', 'last_name', 'email', 'employee_number']
+    readonly_fields = ['teacher_id', 'hire_date']
+    filter_horizontal = ['grades', 'subjects']
+    actions = ['generate_pins', 'reset_pins']
+    
+    fieldsets = (
+        ('Teacher Information', {
+            'fields': ('teacher_id', 'first_name', 'last_name', 'date_of_birth', 'gender'),
+            'description': 'Basic teacher information'
+        }),
+        ('PIN Management', {
+            'fields': ('pin',),
+            'description': 'Teacher PIN for login (auto-generated)'
+        }),
+        ('Contact Information', {
+            'fields': ('email', 'phone', 'address'),
+            'description': 'Contact details for the teacher'
+        }),
+        ('Employment Information', {
+            'fields': ('employee_number', 'hire_date', 'is_active'),
+            'description': 'Employment and status information'
+        }),
+        ('Teaching Assignments', {
+            'fields': ('grades', 'subjects'),
+            'description': 'Grades and subjects this teacher is assigned to teach'
+        }),
+    )
+    
+    def subject_count(self, obj):
+        return obj.subjects.count()
+    subject_count.short_description = 'Subjects'
+    
+    def grade_count(self, obj):
+        return obj.grades.count()
+    grade_count.short_description = 'Grades'
+    
+    def pin_status(self, obj):
+        """Display PIN status (masked for security)."""
+        if obj.pin:
+            return f"●●●●●● ({obj.pin})"
+        return "Not set"
+    pin_status.short_description = 'PIN'
+    
+    def generate_pins(self, request, queryset):
+        """Generate PINs for selected teachers."""
+        from .models import generate_teacher_pin
+        
+        updated = 0
+        for teacher in queryset:
+            if not teacher.pin:  # Only generate if no PIN exists
+                teacher.pin = generate_teacher_pin()
+                teacher.save()
+                updated += 1
+        
+        if updated == 1:
+            message = f"Generated PIN for 1 teacher."
+        else:
+            message = f"Generated PINs for {updated} teachers."
+        
+        self.message_user(request, message)
+    generate_pins.short_description = "Generate PINs for selected teachers"
+    
+    def reset_pins(self, request, queryset):
+        """Reset PINs for selected teachers."""
+        from .models import generate_teacher_pin
+        
+        updated = 0
+        for teacher in queryset:
+            teacher.pin = generate_teacher_pin()
+            teacher.save()
+            updated += 1
+        
+        if updated == 1:
+            message = f"Reset PIN for 1 teacher."
+        else:
+            message = f"Reset PINs for {updated} teachers."
+        
+        self.message_user(request, message)
+    reset_pins.short_description = "Reset PINs for selected teachers"
+    
+    def response_change(self, request, obj):
+        """Override to handle PIN regeneration."""
+        if "_regenerate_pin" in request.POST:
+            from .models import generate_teacher_pin
+            obj.pin = generate_teacher_pin()
+            obj.save()
+            self.message_user(request, f"PIN regenerated for {obj.full_name}. New PIN: {obj.pin}")
+            return self.response_post_save_change(request, obj)
+        return super().response_change(request, obj)
+    
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        """Override change view to add PIN regeneration button."""
+        extra_context = extra_context or {}
+        extra_context['show_regenerate_pin'] = True
+        return super().change_view(request, object_id, form_url, extra_context)

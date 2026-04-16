@@ -170,7 +170,51 @@
                         {% endif %}
                         <div class="subject-count" id="subjectCount"></div>
                     </div>
-                    
+
+                    <div class="financial-section">
+                        <h3>Financial Information</h3>
+                        <div class="financial-grid">
+                            <div class="form-group">
+                                <label>{{ form.scholarship_choice.label }}</label>
+                                <div class="radio-group">
+                                    {{ form.scholarship_choice }}
+                                </div>
+                                <small class="help-text">{{ form.scholarship_choice.help_text }}</small>
+                                {% if form.scholarship_choice.errors %}
+                                    <span class="error">{{ form.scholarship_choice.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ form.scholarship_name.id_for_label }}">{{ form.scholarship_name.label }}</label>
+                                {{ form.scholarship_name }}
+                                {% if form.scholarship_name.errors %}
+                                    <span class="error">{{ form.scholarship_name.errors.0 }}</span>
+                                {% endif %}
+                                <small class="help-text">Enter the scholarship name if applicable.</small>
+                            </div>
+                        </div>
+                        <div class="financial-grid">
+                            <div class="form-group">
+                                <label>{{ form.bursary_choice.label }}</label>
+                                <div class="radio-group">
+                                    {{ form.bursary_choice }}
+                                </div>
+                                <small class="help-text">{{ form.bursary_choice.help_text }}</small>
+                                {% if form.bursary_choice.errors %}
+                                    <span class="error">{{ form.bursary_choice.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ form.bursary_name.id_for_label }}">{{ form.bursary_name.label }}</label>
+                                {{ form.bursary_name }}
+                                {% if form.bursary_name.errors %}
+                                    <span class="error">{{ form.bursary_name.errors.0 }}</span>
+                                {% endif %}
+                                <small class="help-text">Enter the bursary name if applicable.</small>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group checkbox-group">
                         {{ form.accept_rules }}
                         <label for="{{ form.accept_rules.id_for_label }}">
@@ -416,6 +460,42 @@
                     .subject-count.success {
                         background: #d4edda;
                         color: #155724;
+                    }
+
+                    .financial-section {
+                        background: #f8f9fa;
+                        padding: 1.5rem;
+                        border-radius: 8px;
+                        margin: 1.5rem 0;
+                    }
+
+                    .financial-section h3 {
+                        margin-bottom: 1rem;
+                        font-size: 1.2rem;
+                        color: #1a5276;
+                    }
+
+                    .financial-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                        gap: 1rem;
+                        margin-bottom: 1rem;
+                    }
+
+                    .financial-section .form-group {
+                        margin-bottom: 0.75rem;
+                    }
+
+                    .radio-group {
+                        display: flex;
+                        align-items: center;
+                        gap: 1.25rem;
+                        flex-wrap: wrap;
+                        margin: 0.5rem 0;
+                    }
+
+                    .radio-group .form-check-input {
+                        margin-right: 0.5rem;
                     }
                     
                     .no-stream-selected {

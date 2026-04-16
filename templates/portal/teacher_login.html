@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Login - School Portal{% endblock %}
+
+{% block content %}
+<section class="login-section">
+    <div class="container">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <h2><i class="fas fa-chalkboard-teacher"></i> Teacher Portal</h2>
+                    <p>Login to manage tasks and grade submissions</p>
+                </div>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                            <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post" class="login-form">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.teacher_id.id_for_label }}">{{ form.teacher_id.label }}</label>
+                        {{ form.teacher_id }}
+                        {% if form.teacher_id.errors %}
+                            <div class="error">{{ form.teacher_id.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.pin.id_for_label }}">{{ form.pin.label }}</label>
+                        {{ form.pin }}
+                        {% if form.pin.errors %}
+                            <div class="error">{{ form.pin.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="fas fa-sign-in-alt"></i> Login to Teacher Portal
+                    </button>
+                </form>
+                
+                <div class="login-footer">
+                    <p><a href="{% url 'home' %}"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

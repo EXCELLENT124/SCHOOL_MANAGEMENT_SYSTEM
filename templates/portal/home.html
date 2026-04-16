@@ -5,7 +5,7 @@
 {% block content %}
 <section class="hero">
     <div class="hero-content">
-        <h1>Welcome to Secondary School</h1>
+        <h1>Welcome to Mahashe Secondary School</h1>
         <p class="hero-subtitle">Empowering Future Leaders Through Quality Education</p>
         <div class="hero-stats">
             <div class="stat-item">
@@ -25,12 +25,113 @@
             <a href="{% url 'apply_admission' %}" class="btn btn-primary">
                 <i class="fas fa-user-plus"></i> Apply for Admission
             </a>
-            <a href="{% url 'learner_login' %}" class="btn btn-secondary">
-                <i class="fas fa-sign-in-alt"></i> Learner Login
-            </a>
+        </div>
+    </div>
+    
+    <!-- Login Container -->
+    <div class="hero-login-container">
+        <h3>Access Portal</h3>
+        
+        <!-- Login Type Selection -->
+        <div class="login-type-selector">
+            <label class="login-type-option">
+                <input type="radio" name="login_type" value="learner" checked>
+                <span class="option-label">
+                    <i class="fas fa-user-graduate"></i>
+                    Learner Login
+                </span>
+            </label>
+            <label class="login-type-option">
+                <input type="radio" name="login_type" value="teacher">
+                <span class="option-label">
+                    <i class="fas fa-chalkboard-user"></i>
+                    Teacher Login
+                </span>
+            </label>
+        </div>
+        
+        <!-- Login Form -->
+        <form method="post" class="login-form" id="loginForm" action="{% url 'home_login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="login_type" id="loginTypeField" value="learner">
+            
+            <!-- Learner Login Fields -->
+            <div class="login-fields" id="learnerFields">
+                <div class="form-group">
+                    <label for="learner_id">Study Number</label>
+                    <input type="text" id="learner_id" name="study_number" class="form-control" placeholder="Enter your Study Number (e.g., STU12345678)" required>
+                </div>
+                <div class="form-group">
+                    <label for="learner_pin">PIN</label>
+                    <input type="password" id="learner_pin" name="pin" class="form-control" placeholder="Enter your 6-digit PIN" maxlength="6" required>
+                </div>
+            </div>
+            
+            <!-- Teacher Login Fields -->
+            <div class="login-fields" id="teacherFields" style="display: none;">
+                <div class="form-group">
+                    <label for="teacher_id">Teacher ID Number</label>
+                    <input type="text" id="teacher_id" name="teacher_id" class="form-control" placeholder="Enter your Teacher ID" required>
+                </div>
+                <div class="form-group">
+                    <label for="teacher_pin">PIN</label>
+                    <input type="password" id="teacher_pin" name="teacher_pin" class="form-control" placeholder="Enter your PIN" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+        
+        <div class="login-links">
+            <a href="{% url 'apply_admission' %}">Apply for Admission</a>
+            <a href="{% url 'create_pin' %}">Create Learner PIN</a>
+            <a href="{% url 'create_teacher_pin' %}">Create Teacher PIN</a>
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginTypeRadios = document.querySelectorAll('input[name="login_type"]');
+    const learnerFields = document.getElementById('learnerFields');
+    const teacherFields = document.getElementById('teacherFields');
+    const loginForm = document.getElementById('loginForm');
+    
+    // Function to update form based on selected login type
+    function updateForm(loginType) {
+        if (loginType === 'learner') {
+            learnerFields.style.display = 'block';
+            teacherFields.style.display = 'none';
+            document.getElementById('loginTypeField').value = 'learner';
+        } else {
+            learnerFields.style.display = 'none';
+            teacherFields.style.display = 'block';
+            document.getElementById('loginTypeField').value = 'teacher';
+        }
+    }
+    
+    // Handle login type switching
+    loginTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            updateForm(this.value);
+        });
+    });
+    
+    // Set initial form state based on checked radio button
+    const initialChecked = document.querySelector('input[name="login_type"]:checked');
+    if (initialChecked) {
+        updateForm(initialChecked.value);
+    }
+    
+    // Handle form submission
+    loginForm.addEventListener('submit', function(e) {
+        // Form will submit to the correct URL based on action attribute
+        return true;
+    });
+});
+</script>
 
 <section class="features">
     <div class="container">

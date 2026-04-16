@@ -50,7 +50,7 @@
         <!-- Quick Links Grid -->
         <div class="enquiry-grid">
             <!-- Academic Admission Status -->
-            <div class="dashboard-card">
+            <div class="dashboard-card blue-border-card">
                 <div class="card-header">
                     <h2><i class="fas fa-user-check"></i> Admission Status</h2>
                 </div>
@@ -91,15 +91,15 @@
             </div>
 
             <!-- Progress Report -->
-            <div class="dashboard-card">
+            <div class="dashboard-card blue-border-card">
                 <div class="card-header">
                     <h2><i class="fas fa-chart-line"></i> Progress Report</h2>
                 </div>
                 <div class="card-body">
                     {% if latest_report %}
-                        <div class="enquiry-item">
-                            <span class="label">Latest Report:</span>
-                            <span class="value">Year {{ latest_report.year }} - Term {{ latest_report.term }}</span>
+                        <div class="progress-report-header">
+                            <h3>MAHASHE SECONDARY SCHOOL</h3>
+                            <p>Progress Report for Year {{ latest_report.year }} Term {{ latest_report.term }}</p>
                         </div>
                         <div class="enquiry-item">
                             <span class="label">Overall Average:</span>
@@ -113,6 +113,26 @@
                             <span class="label">Issue Date:</span>
                             <span class="value">{{ latest_report.date_issued|date:"M d, Y" }}</span>
                         </div>
+                        {% if subjects_with_marks %}
+                        <div class="progress-report-table-wrap">
+                            <table class="progress-report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th class="text-right">Marks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in subjects_with_marks %}
+                                    <tr>
+                                        <td>{{ item.subject }}</td>
+                                        <td class="text-right">{{ item.marks|default:'N/A' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
                         {% if latest_report.report_file %}
                         <a href="{{ latest_report.report_file.url }}" class="btn btn-primary btn-block mt-2" target="_blank">
                             <i class="fas fa-download"></i> Download Report
@@ -131,7 +151,7 @@
             </div>
 
             <!-- Proof of Registration -->
-            <div class="dashboard-card">
+            <div class="dashboard-card blue-border-card">
                 <div class="card-header">
                     <h2><i class="fas fa-file-signature"></i> Proof of Registration</h2>
                 </div>

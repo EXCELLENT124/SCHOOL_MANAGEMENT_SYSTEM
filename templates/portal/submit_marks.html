@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Marks - School Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-edit"></i> Submit Learner Marks</h2>
+                    {% if selected_grade %}
+                        <p class="text-muted mb-0">Currently working on: <strong>{{ selected_grade.name }}</strong></p>
+                    {% endif %}
+                </div>
+                <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Grade Selection -->
+    {% if available_grades %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> Select Grade to Work On</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for grade in available_grades %}
+                            <div class="col-md-4 mb-3">
+                                <a href="{% url 'submit_marks' %}?grade={{ grade.id }}" 
+                                   class="card text-decoration-none {% if selected_grade and selected_grade.id == grade.id %}border-primary{% else %}border-secondary{% endif %}">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">{{ grade.name }}</h6>
+                                        <p class="card-text text-muted">
+                                            {{ grade.capacity }} capacity
+                                        </p>
+                                        {% if selected_grade and selected_grade.id == grade.id %}
+                                            <span class="badge bg-primary">Currently Selected</span>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Submit Marks Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus"></i> Submit New Marks</h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.learner.id_for_label }}" class="form-label">
+                                        {{ form.learner.label }}
+                                    </label>
+                                    {{ form.learner }}
+                                    {% if form.learner.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.learner.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.subject.id_for_label }}" class="form-label">
+                                        {{ form.subject.label }}
+                                    </label>
+                                    {{ form.subject }}
+                                    {% if form.subject.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.subject.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.exam_type.id_for_label }}" class="form-label">
+                                        {{ form.exam_type.label }}
+                                    </label>
+                                    {{ form.exam_type }}
+                                    {% if form.exam_type.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.exam_type.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.marks.id_for_label }}" class="form-label">
+                                        {{ form.marks.label }}
+                                    </label>
+                                    {{ form.marks }}
+                                    {% if form.marks.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.marks.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.date_taken.id_for_label }}" class="form-label">
+                                        {{ form.date_taken.label }}
+                                    </label>
+                                    {{ form.date_taken }}
+                                    {% if form.date_taken.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.date_taken.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save"></i> Submit Marks
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Submissions -->
+    {% if recent_submissions %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Recent Submissions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Learner</th>
+                                    <th>Subject</th>
+                                    <th>Exam Type</th>
+                                    <th>Marks</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exam in recent_submissions %}
+                                    <tr>
+                                        <td>{{ exam.learner.full_name }}</td>
+                                        <td>{{ exam.subject }}</td>
+                                        <td>{{ exam.get_exam_type_display }}</td>
+                                        <td>{{ exam.marks }}%</td>
+                                        <td>{{ exam.date_taken|date:"M d, Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Auto-populate grade when learner is selected
+document.getElementById('id_learner').addEventListener('change', function() {
+    const learnerId = this.value;
+    if (learnerId) {
+        // You could add AJAX here to fetch learner's grade if needed
+        console.log('Learner selected:', learnerId);
+    }
+});
+</script>
+{% endblock %}
