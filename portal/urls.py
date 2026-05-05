@@ -1,7 +1,10 @@
-from django.urls import path
+from django.urls import path, include
+from django.contrib import admin
 from . import views
 
 urlpatterns = [
+    # Admin Site
+    path('admin/', admin.site.urls),
     # Home and Public Pages
     path('', views.home, name='home'),
     path('home-login/', views.home_login, name='home_login'),
@@ -36,10 +39,12 @@ urlpatterns = [
     path('dashboard/', views.learner_dashboard, name='learner_dashboard'),
     path('academic-application/', views.academic_application, name='academic_application'),
     path('examinations/', views.examinations, name='examinations'),
+    path('examinations/pdf/', views.examinations_pdf, name='examinations_pdf'),
     path('academic-registration/', views.academic_registration, name='academic_registration'),
     path('download-proof-registration/', views.download_proof_of_registration, name='download_proof_registration'),
     path('student-enquiry/', views.student_enquiry, name='student_enquiry'),
     path('certificate/<int:document_id>/', views.view_certificate, name='view_certificate'),
+    path('progress-report/', views.progress_report_pdf, name='progress_report_pdf'),
     
     # Learner Tasks
     path('tasks/', views.learner_tasks, name='learner_tasks'),

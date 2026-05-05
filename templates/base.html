@@ -14,21 +14,19 @@
         <div class="nav-container">
             <a href="{% url 'home' %}" class="nav-logo">
                 <img src="{% static 'images/logo.png' %}" alt="School Logo" class="logo-image">
-                <span>MAHASHE SECONDARY<br> SCHOOL PORTAL</span>
+                <span>ACADEMIC PORTAL</span>
             </a>
             
             <ul class="nav-menu">
                 <li><a href="{% url 'home' %}">Home</a></li>
                 <li><a href="{% url 'apply_admission' %}">Apply for Admission</a></li>
                 <li><a href="{% url 'admission_status_check' %}">Check Status</a></li>
-                <li><a href="{% url 'create_pin' %}">Create PIN</a></li>
                 <li><a href="{% url 'available_spaces' %}">Available Spaces</a></li>
-                <li><a href="{% url 'teacher_login' %}">Teacher Portal</a></li>
+                <li><a href="{% url 'create_pin' %}">Create Learner PIN</a></li>
+                <li><a href="{% url 'create_teacher_pin' %}">Create Teacher PIN</a></li>
                 {% if request.session.is_learner %}
                     <li><a href="{% url 'learner_dashboard' %}">My Dashboard</a></li>
                     <li><a href="{% url 'learner_logout' %}">Logout</a></li>
-                {% else %}
-                    <li><a href="{% url 'learner_login' %}" class="btn-login">Learner Login</a></li>
                 {% endif %}
             </ul>
             

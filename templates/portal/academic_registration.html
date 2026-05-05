@@ -518,33 +518,33 @@
         <!-- Registration Fee Information -->
         <div class="dashboard-card">
             <div class="card-header">
-                <h2><i class="fas fa-file-invoice-dollar"></i> Registration Fees</h2>
+                <h2><i class="fas fa-file-invoice"></i> Registration Fees (ZAR)</h2>
             </div>
             <div class="card-body">
                 <div class="fee-breakdown">
                     <div class="fee-item">
                         <span class="fee-label">Registration Fee:</span>
-                        <span class="fee-value">${{ registration.registration_fee|default:"500.00" }}</span>
+                        <span class="fee-value">R{{ registration.registration_fee|default:"500.00" }}</span>
                     </div>
                     <div class="fee-item">
                         <span class="fee-label">Annual Tuition:</span>
-                        <span class="fee-value">${{ learner.financial_info.tuition_fees|default:"5000.00" }}</span>
+                        <span class="fee-value">R{{ learner.financial_info.tuition_fees|default:"5000.00" }}</span>
                     </div>
                     {% if learner.financial_info.scholarship_status != 'none' %}
                     <div class="fee-item discount">
                         <span class="fee-label">Scholarship ({{ learner.financial_info.get_scholarship_status_display }}):</span>
-                        <span class="fee-value">-${{ learner.financial_info.scholarship_amount }}</span>
+                        <span class="fee-value">-R{{ learner.financial_info.scholarship_amount }}</span>
                     </div>
                     {% endif %}
                     {% if learner.financial_info.bursary_status == 'approved' %}
                     <div class="fee-item discount">
                         <span class="fee-label">Bursary Approved:</span>
-                        <span class="fee-value">-${{ learner.financial_info.bursary_amount }}</span>
+                        <span class="fee-value">-R{{ learner.financial_info.bursary_amount }}</span>
                     </div>
                     {% endif %}
                     <div class="fee-item total">
                         <span class="fee-label">Balance Due:</span>
-                        <span class="fee-value">${{ learner.financial_info.balance_due|default:"5000.00" }}</span>
+                        <span class="fee-value">R{{ learner.financial_info.balance_due|default:"5000.00" }}</span>
                     </div>
                 </div>
             </div>

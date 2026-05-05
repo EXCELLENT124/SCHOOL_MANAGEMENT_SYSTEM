@@ -57,6 +57,66 @@
                     {% endif %}
                     <span class="badge badge-{{ learner.admission_status }}">{{ learner.get_admission_status_display }}</span>
                 </p>
+                
+                <!-- Enhanced Personal Information -->
+                <div class="personal-details">
+                    <h3><i class="fas fa-user"></i> Personal Information</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="label">Gender:</span>
+                            <span class="value">{{ learner.get_gender_display|default:"Not Specified" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Date of Birth:</span>
+                            <span class="value">{{ learner.date_of_birth|date:"F d, Y"|default:"Not Specified" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">ID Number:</span>
+                            <span class="value">{{ learner.id_number|default:"Not Specified" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Home Language:</span>
+                            <span class="value">{{ learner.home_language|default:"Not Specified" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Citizenship:</span>
+                            <span class="value">{{ learner.citizenship|default:"Not Specified" }}</span>
+                        </div>
+                        {% if learner.email %}
+                        <div class="detail-item">
+                            <span class="label">Email:</span>
+                            <span class="value">{{ learner.email }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="detail-item">
+                            <span class="label">Home Address:</span>
+                            <span class="value">{{ learner.address|default:"Not Specified" }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Parent/Guardian Information -->
+                {% if learner.parent_name or learner.parent_phone or learner.parent_email %}
+                <div class="parent-details">
+                    <h3><i class="fas fa-users"></i> Parent/Guardian Information</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="label">Parent Name:</span>
+                            <span class="value">{{ learner.parent_name|default:"Not Specified" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Contact Phone:</span>
+                            <span class="value">{{ learner.parent_phone|default:"Not Specified" }}</span>
+                        </div>
+                        {% if learner.parent_email %}
+                        <div class="detail-item">
+                            <span class="label">Parent Email:</span>
+                            <span class="value">{{ learner.parent_email }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="profile-actions">
                 <a href="{% url 'learner_logout' %}" class="btn btn-outline btn-small">
@@ -104,7 +164,7 @@
                         {% if registration.registration_fee > 0 %}
                         <div class="info-row">
                             <span class="label">Registration Fee:</span>
-                            <span class="value">${{ registration.registration_fee }}</span>
+                            <span class="value">R{{ registration.registration_fee }}</span>
                         </div>
                         <div class="info-row">
                             <span class="label">Fee Paid:</span>
@@ -144,7 +204,7 @@
                     {% if financial_info %}
                         <div class="info-row">
                             <span class="label">Tuition Fees:</span>
-                            <span class="value">${{ financial_info.tuition_fees }}</span>
+                            <span class="value">R{{ financial_info.tuition_fees }}</span>
                         </div>
                         
                         <div class="financial-section">
@@ -158,7 +218,7 @@
                             {% if financial_info.scholarship_status != 'none' %}
                             <div class="info-row">
                                 <span class="label">Amount:</span>
-                                <span class="value">${{ financial_info.scholarship_amount }}</span>
+                                <span class="value">R{{ financial_info.scholarship_amount }}</span>
                             </div>
                             {% endif %}
                         </div>
@@ -174,20 +234,82 @@
                             {% if financial_info.bursary_status != 'none' %}
                             <div class="info-row">
                                 <span class="label">Amount:</span>
-                                <span class="value">${{ financial_info.bursary_amount }}</span>
+                                <span class="value">R{{ financial_info.bursary_amount }}</span>
                             </div>
                             {% endif %}
+                        </div>
+                        
+                        <!-- Bursary and Scholarship Details Dropdown -->
+                        <div class="financial-section bursary-scholarship-section">
+                            <div class="dropdown-toggle" onclick="toggleFundingDetails()">
+                                <h4><i class="fas fa-graduation-cap"></i> Bursary and Scholarship Details</h4>
+                                <i class="fas fa-chevron-down dropdown-icon" id="fundingDropdownIcon"></i>
+                            </div>
+                            <div class="dropdown-content" id="fundingDetailsContent" style="display: none;">
+                                {% if funding_records %}
+                                <table class="funding-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Year</th>
+                                            <th>Code</th>
+                                            <th>Description</th>
+                                            <th>Status</th>
+                                            <th>Amount Allocated (ZAR)</th>
+                                            <th>Amount Unallocated (ZAR)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for record in funding_records %}
+                                        <tr>
+                                            <td>{{ record.year }}</td>
+                                            <td>{{ record.code }}</td>
+                                            <td>{{ record.description }}</td>
+                                            <td>
+                                                <span class="badge badge-{{ record.status }}">
+                                                    {{ record.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>R{{ record.amount_allocated }}</td>
+                                            <td>R{{ record.amount_unallocated }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                {% else %}
+                                <div class="funding-table">
+                                    <table class="funding-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Year</th>
+                                                <th>Code</th>
+                                                <th>Description</th>
+                                                <th>Status</th>
+                                                <th>Amount Allocated (ZAR)</th>
+                                                <th>Amount Unallocated (ZAR)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="6" class="text-center" style="text-align: center; padding: 1rem; color: var(--text-light);">
+                                                    <em>N/A</em>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                         
                         <div class="financial-section highlight">
                             <div class="info-row">
                                 <span class="label">Total Paid:</span>
-                                <span class="value">${{ financial_info.total_paid }}</span>
+                                <span class="value">R{{ financial_info.total_paid }}</span>
                             </div>
                             <div class="info-row">
                                 <span class="label">Balance Due:</span>
                                 <span class="value {% if financial_info.balance_due > 0 %}text-danger{% else %}text-success{% endif %}">
-                                    ${{ financial_info.balance_due }}
+                                    R{{ financial_info.balance_due }}
                                 </span>
                             </div>
                             <div class="info-row">
@@ -206,7 +328,7 @@
                         {% endif %}
                     {% else %}
                         <div class="empty-state">
-                            <i class="fas fa-file-invoice-dollar"></i>
+                            <i class="fas fa-file-invoice"></i>
                             <p>No financial information available.</p>
                         </div>
                     {% endif %}
@@ -217,29 +339,40 @@
         <!-- Recent Examinations -->
         <div class="dashboard-card full-width">
             <div class="card-header">
-                <h2><i class="fas fa-clipboard-list"></i> Recent Examinations</h2>
+                <h2><i class="fas fa-clipboard-list"></i> Recent Examinations - {{ current_year }} Term {{ current_term }}</h2>
                 <a href="{% url 'examinations' %}" class="btn btn-outline btn-small">View All</a>
             </div>
             <div class="card-body">
-                {% if recent_exams %}
+                {% if exam_status_list %}
                 <table class="exams-table">
                     <thead>
                         <tr>
                             <th>Subject</th>
-                            <th>Exam Type</th>
-                            <th>Marks</th>
-                            <th>Grade</th>
-                            <th>Date</th>
+                            <th>Exam Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for exam in recent_exams %}
+                        {% for subject_info in exam_status_list %}
                         <tr>
-                            <td>{{ exam.subject }}</td>
-                            <td>{{ exam.get_exam_type_display }}</td>
-                            <td>{{ exam.marks }}%</td>
-                            <td><span class="grade-badge grade-{{ exam.grade }}">{{ exam.grade }}</span></td>
-                            <td>{{ exam.date_taken|date:"M d, Y" }}</td>
+                            <td>
+                                <i class="fas fa-book"></i>
+                                {{ subject_info.subject }}
+                            </td>
+                            <td>
+                                {% if subject_info.status == 'yes' %}
+                                    <span class="status-badge status-success">
+                                        <i class="fas fa-check-circle"></i> Yes
+                                    </span>
+                                {% elif subject_info.status == 'no' %}
+                                    <span class="status-badge status-danger">
+                                        <i class="fas fa-times-circle"></i> No
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-na">
+                                        <i class="fas fa-minus-circle"></i> NA
+                                    </span>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -308,5 +441,21 @@
         closeBtn.addEventListener('click', closeSidebar);
         overlay.addEventListener('click', closeSidebar);
     });
+    
+    // Toggle Bursary and Scholarship Details Dropdown
+    function toggleFundingDetails() {
+        const content = document.getElementById('fundingDetailsContent');
+        const icon = document.getElementById('fundingDropdownIcon');
+        
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            content.style.display = 'none';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+    }
 </script>
 {% endblock %}

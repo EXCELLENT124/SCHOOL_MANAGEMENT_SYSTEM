@@ -53,8 +53,8 @@ a:hover {
 
 /* ===== Navigation ===== */
 .navbar {
-    background: var(--bg-white);
-    box-shadow: var(--shadow);
+    background: linear-gradient(to bottom, var(--primary-color) 0%, var(--primary-light) 50%, #e8f5e9 100%);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -63,7 +63,7 @@ a:hover {
 .nav-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem 2rem;
+    padding: 0.25rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -73,20 +73,20 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.8rem;
+    font-size: 2.2rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: white;
 }
 
 .nav-logo i {
-    font-size: 1.8rem;
+    font-size: 2.2rem;
     color: var(--accent-color);
 }
 
 .logo-image {
-    height: 85px;
+    height: 140px;
     width: auto;
-    max-width: 130px;
+    max-width: 200px;
 }
 
 .nav-menu {
@@ -168,6 +168,19 @@ a:hover {
     margin-top: 2px;
 }
 
+/* Hamburger active state animation */
+.hamburger.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
 /* ===== Main Content ===== */
 .main-content {
     min-height: calc(100vh - 200px);
@@ -217,7 +230,7 @@ a:hover {
 
 /* ===== Hero Section ===== */
 .hero {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    background: linear-gradient(to bottom, var(--primary-color) 0%, var(--primary-light) 50%, #e8f5e9 100%);
     color: white;
     padding: 4rem 2rem;
     text-align: center;
@@ -272,7 +285,7 @@ a:hover {
 .hero-login-container {
     max-width: 450px;
     margin: 3rem auto 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(to bottom, var(--primary-color) 0%, var(--primary-light) 50%, #e8f5e9 100%);
     backdrop-filter: blur(10px);
     border-radius: 16px;
     padding: 2rem;
@@ -280,7 +293,7 @@ a:hover {
 }
 
 .hero-login-container h3 {
-    color: var(--primary-color);
+    color: #e8f5e9;
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
 }
@@ -406,6 +419,52 @@ input[name="pin"], input[name="teacher_pin"] {
     text-decoration: underline;
 }
 
+/* ===== Login Dropdown ===== */
+.login-dropdown-container {
+    position: relative;
+    width: 100%;
+}
+
+.login-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 0.5rem;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.login-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.login-option:last-child {
+    border-bottom: none;
+}
+
+.login-option:hover {
+    background: var(--bg-light);
+    color: var(--primary-color);
+}
+
+.login-option i {
+    width: 20px;
+    text-align: center;
+}
+
 /* ===== Buttons ===== */
 .btn {
     display: inline-flex;
@@ -462,6 +521,131 @@ input[name="pin"], input[name="teacher_pin"] {
     font-size: 0.875rem;
 }
 
+/* Toggle Switch Styles */
+.user-type-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.toggle-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+}
+
+.toggle-label.learner-label {
+    color: var(--primary-color);
+}
+
+.toggle-label.teacher-label {
+    color: var(--text-secondary);
+}
+
+.user-type-toggle input:checked ~ .teacher-label {
+    color: var(--primary-color);
+}
+
+.user-type-toggle input:checked ~ .learner-label {
+    color: var(--text-secondary);
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Input Fields Styles */
+.login-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-input {
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background: var(--bg-white);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-input::placeholder {
+    color: var(--text-light);
+}
+
 .btn-block {
     display: flex;
     justify-content: center;
@@ -490,8 +674,9 @@ input[name="pin"], input[name="teacher_pin"] {
     text-align: center;
     padding: 2rem;
     border-radius: var(--radius-lg);
-    background: var(--bg-light);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 50%, #e8f5e9 100%);
     transition: var(--transition);
+    color: white;
 }
 
 .feature-card:hover {
@@ -501,16 +686,17 @@ input[name="pin"], input[name="teacher_pin"] {
 
 .feature-card i {
     font-size: 3rem;
-    color: var(--primary-color);
+    color: white;
     margin-bottom: 1rem;
 }
 
 .feature-card h3 {
     margin-bottom: 0.5rem;
+    color: white;
 }
 
 .feature-card p {
-    color: var(--text-light);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* ===== Grades Section ===== */
@@ -537,17 +723,21 @@ input[name="pin"], input[name="teacher_pin"] {
 .grades-table td {
     padding: 1rem;
     text-align: left;
-    border-bottom: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.grades-table td {
+    border: 1px solid var(--border-color);
 }
 
 .grades-table th {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 50%, #e8f5e9 100%);
     color: white;
     font-weight: 600;
 }
 
 .grades-table tr:hover {
-    background: var(--bg-light);
+    background: rgba(232, 245, 233, 0.5);
 }
 
 .grades-table .full { color: var(--danger-color); font-weight: 600; }
@@ -1001,6 +1191,56 @@ input[name="pin"], input[name="teacher_pin"] {
     margin-bottom: 0.25rem;
 }
 
+.personal-details,
+.parent-details {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-item .label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex: 0 0 0 1;
+}
+
+.detail-item .value {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.parent-info-section {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.parent-info-section h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .study-number {
     color: var(--text-light);
     margin-bottom: 0.5rem;
@@ -1101,6 +1341,83 @@ input[name="pin"], input[name="teacher_pin"] {
     padding: 1rem;
     border-radius: var(--radius);
     border: 1px solid var(--border-color);
+}
+
+/* Bursary and Scholarship Dropdown */
+.bursary-scholarship-section {
+    background: linear-gradient(135deg, rgba(26, 82, 118, 0.05) 0%, rgba(232, 245, 233, 0.2) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1rem;
+}
+
+.dropdown-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    transition: all 0.3s ease;
+}
+
+.dropdown-toggle:hover {
+    color: var(--primary-color);
+}
+
+.dropdown-toggle h4 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dropdown-icon {
+    transition: transform 0.3s ease;
+}
+
+.dropdown-content {
+    margin-top: 1rem;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Funding Table */
+.funding-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.funding-table th,
+.funding-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border: 1px solid var(--border-color);
+}
+
+.funding-table th {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 50%, #e8f5e9 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.funding-table tr:nth-child(even) {
+    background: rgba(232, 245, 233, 0.3);
+}
+
+.funding-table tr:hover {
+    background: rgba(232, 245, 233, 0.6);
 }
 
 /* Tables */
@@ -1647,6 +1964,88 @@ input[name="pin"], input[name="teacher_pin"] {
     text-align: right;
 }
 
+/* Comprehensive Progress Report Table */
+.progress-report-table-wrap.comprehensive-report {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table {
+    font-size: 0.85rem;
+    min-width: 700px;
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table th {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 50%, #e8f5e9 100%);
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table th.term-header {
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table th.term-1,
+.progress-report-table-wrap.comprehensive-report .progress-report-table td.term-1 {
+    background: rgba(26, 82, 118, 0.05);
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table th.term-2,
+.progress-report-table-wrap.comprehensive-report .progress-report-table td.term-2 {
+    background: rgba(40, 180, 99, 0.05);
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table th.term-3,
+.progress-report-table-wrap.comprehensive-report .progress-report-table td.term-3 {
+    background: rgba(26, 82, 118, 0.08);
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table th.term-4,
+.progress-report-table-wrap.comprehensive-report .progress-report-table td.term-4 {
+    background: rgba(40, 180, 99, 0.08);
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table td {
+    text-align: center;
+    padding: 0.6rem 0.4rem;
+    font-weight: 500;
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table td.subject-name {
+    text-align: left;
+    font-weight: 600;
+    color: var(--primary-color);
+    min-width: 150px;
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table tr.average-row {
+    background: linear-gradient(135deg, rgba(26, 82, 118, 0.1) 0%, rgba(232, 245, 233, 0.3) 100%);
+    border-top: 2px solid var(--primary-color);
+}
+
+.progress-report-table-wrap.comprehensive-report .progress-report-table tr.average-row td {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.progress-report-legend {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: var(--radius);
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.progress-report-legend p {
+    margin: 0.25rem 0;
+}
+
 /* Contact Info */
 .contact-info {
     display: grid;
@@ -1980,7 +2379,7 @@ input[name="pin"], input[name="teacher_pin"] {
 
 /* Footer */
 .footer {
-    background: var(--text-dark);
+    background: linear-gradient(to bottom, var(--primary-color) 0%, var(--primary-light) 50%, #e8f5e9 100%);
     color: white;
     padding: 2rem;
     text-align: center;
@@ -2108,4 +2507,37 @@ input[name="pin"], input[name="teacher_pin"] {
     .contact-info {
         grid-template-columns: 1fr;
     }
+}
+
+/* ===== Status Badges ===== */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-success {
+    background: #28a745;
+    color: white;
+}
+
+.status-pending {
+    background: #ffc107;
+    color: #212529;
+}
+
+.status-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.status-na {
+    background: #6c757d;
+    color: white;
 }

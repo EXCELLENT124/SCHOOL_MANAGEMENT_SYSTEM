@@ -106,7 +106,7 @@ class RegistrationForm(forms.ModelForm):
         widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
         label='Scholarship or Bursary',
         initial='no',
-        required=False,
+        required=True,
         help_text='Select Yes if you have a scholarship.'
     )
 
@@ -124,7 +124,7 @@ class RegistrationForm(forms.ModelForm):
         widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
         label='Do you have a bursary?',
         initial='no',
-        required=False,
+        required=True,
         help_text='Select Yes if you have a bursary.'
     )
 
@@ -228,7 +228,12 @@ class TeacherLoginForm(forms.Form):
                 teacher = Teacher.objects.get(teacher_id=teacher_id, pin=pin, is_active=True)
                 cleaned_data['teacher'] = teacher
             except Teacher.DoesNotExist:
-                raise forms.ValidationError('Invalid Teacher ID or PIN. Please try again.')
+                # Debug: Check if teacher exists with just teacher_id
+                try:
+                    teacher_check = Teacher.objects.get(teacher_id=teacher_id)
+                    raise forms.ValidationError(f'Invalid PIN for Teacher ID {teacher_id}. Please check your PIN.')
+                except Teacher.DoesNotExist:
+                    raise forms.ValidationError(f'Teacher ID {teacher_id} not found. Please check your Teacher ID.')
         
         return cleaned_data
 

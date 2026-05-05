@@ -144,7 +144,7 @@
 
                     <!-- Application Details -->
                     <div class="application-details">
-                        <h3>Application Details</h3>
+                        <h3><i class="fas fa-user-edit"></i> Application Details</h3>
                         <div class="details-grid">
                             <div class="detail-item">
                                 <span class="label">Application ID:</span>
@@ -155,8 +155,36 @@
                                 <span class="value">{{ application.study_number|default:"Pending" }}</span>
                             </div>
                             <div class="detail-item">
-                                <span class="label">Learner Name:</span>
+                                <span class="label">Full Name:</span>
                                 <span class="value">{{ application.learner_name }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Date of Birth:</span>
+                                <span class="value">{{ application.date_of_birth|date:"F d, Y"|default:"Not Provided" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Gender:</span>
+                                <span class="value">{{ application.get_gender_display|default:"Not Specified" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">ID Number:</span>
+                                <span class="value">{{ application.id_number|default:"Not Provided" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Email Address:</span>
+                                <span class="value">{{ application.email|default:"Not Provided" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Home Language:</span>
+                                <span class="value">{{ application.home_language|default:"Not Specified" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Citizenship:</span>
+                                <span class="value">{{ application.citizenship|default:"Not Specified" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Home Address:</span>
+                                <span class="value">{{ application.home_address|default:"Not Provided" }}</span>
                             </div>
                             <div class="detail-item">
                                 <span class="label">Grade Applied For:</span>
@@ -172,7 +200,38 @@
                             </div>
                         </div>
                     </div>
-
+                    
+                    <!-- Parent/Guardian Information -->
+                    <div class="parent-info-section">
+                        <h3><i class="fas fa-users"></i> Parent/Guardian Information</h3>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="label">Parent/Guardian Name:</span>
+                                <span class="value">{{ application.parent_name|default:"Not Specified" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Relationship:</span>
+                                <span class="value">{{ application.parent_relationship|default:"Not Specified" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Contact Number:</span>
+                                <span class="value">{{ application.parent_phone|default:"Not Specified" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Email Address:</span>
+                                <span class="value">{{ application.parent_email|default:"Not Specified" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Occupation:</span>
+                                <span class="value">{{ application.parent_occupation|default:"Not Specified" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="label">Workplace:</span>
+                                <span class="value">{{ application.parent_workplace|default:"Not Specified" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     {% if application.review_notes %}
                     <div class="review-notes">
                         <h4>Review Notes</h4>

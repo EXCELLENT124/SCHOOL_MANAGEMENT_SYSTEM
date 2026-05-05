@@ -96,56 +96,104 @@
                     <h2><i class="fas fa-chart-line"></i> Progress Report</h2>
                 </div>
                 <div class="card-body">
-                    {% if latest_report %}
+                    {% if progress_report_data %}
                         <div class="progress-report-header">
                             <h3>MAHASHE SECONDARY SCHOOL</h3>
-                            <p>Progress Report for Year {{ latest_report.year }} Term {{ latest_report.term }}</p>
+                            <p>Academic Progress Report - Year {{ current_year }}</p>
                         </div>
-                        <div class="enquiry-item">
-                            <span class="label">Overall Average:</span>
-                            <span class="value highlight">{{ latest_report.overall_average }}%</span>
-                        </div>
-                        <div class="enquiry-item">
-                            <span class="label">Class Position:</span>
-                            <span class="value">{{ latest_report.class_position }} of {{ latest_report.total_learners }}</span>
-                        </div>
-                        <div class="enquiry-item">
-                            <span class="label">Issue Date:</span>
-                            <span class="value">{{ latest_report.date_issued|date:"M d, Y" }}</span>
-                        </div>
-                        {% if subjects_with_marks %}
-                        <div class="progress-report-table-wrap">
+                        
+                        <!-- Comprehensive Progress Report Table -->
+                        <div class="progress-report-table-wrap comprehensive-report">
                             <table class="progress-report-table">
                                 <thead>
                                     <tr>
-                                        <th>Subject</th>
-                                        <th class="text-right">Marks</th>
+                                        <th rowspan="2" style="vertical-align: middle;">Subject</th>
+                                        <th colspan="3" class="term-header term-1">Term 1</th>
+                                        <th colspan="3" class="term-header term-2">Term 2</th>
+                                        <th colspan="3" class="term-header term-3">Term 3</th>
+                                        <th colspan="3" class="term-header term-4">Term 4</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="term-1">Mark</th>
+                                        <th class="term-1">Lvl</th>
+                                        <th class="term-1">Grd</th>
+                                        <th class="term-2">Mark</th>
+                                        <th class="term-2">Lvl</th>
+                                        <th class="term-2">Grd</th>
+                                        <th class="term-3">Mark</th>
+                                        <th class="term-3">Lvl</th>
+                                        <th class="term-3">Grd</th>
+                                        <th class="term-4">Mark</th>
+                                        <th class="term-4">Lvl</th>
+                                        <th class="term-4">Grd</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for item in subjects_with_marks %}
+                                    {% for subject_data in progress_report_data %}
                                     <tr>
-                                        <td>{{ item.subject }}</td>
-                                        <td class="text-right">{{ item.marks|default:'N/A' }}</td>
+                                        <td class="subject-name">{{ subject_data.subject }}</td>
+                                        <td class="term-1">{% if subject_data.term1.marks %}{{ subject_data.term1.marks }}%{% else %}-{% endif %}</td>
+                                        <td class="term-1">{% if subject_data.term1.level != 'N/A' %}{{ subject_data.term1.level }}{% else %}-{% endif %}</td>
+                                        <td class="term-1">{% if subject_data.term1.grade != 'N/A' %}{{ subject_data.term1.grade }}{% else %}-{% endif %}</td>
+                                        
+                                        <td class="term-2">{% if subject_data.term2.marks %}{{ subject_data.term2.marks }}%{% else %}-{% endif %}</td>
+                                        <td class="term-2">{% if subject_data.term2.level != 'N/A' %}{{ subject_data.term2.level }}{% else %}-{% endif %}</td>
+                                        <td class="term-2">{% if subject_data.term2.grade != 'N/A' %}{{ subject_data.term2.grade }}{% else %}-{% endif %}</td>
+                                        
+                                        <td class="term-3">{% if subject_data.term3.marks %}{{ subject_data.term3.marks }}%{% else %}-{% endif %}</td>
+                                        <td class="term-3">{% if subject_data.term3.level != 'N/A' %}{{ subject_data.term3.level }}{% else %}-{% endif %}</td>
+                                        <td class="term-3">{% if subject_data.term3.grade != 'N/A' %}{{ subject_data.term3.grade }}{% else %}-{% endif %}</td>
+                                        
+                                        <td class="term-4">{% if subject_data.term4.marks %}{{ subject_data.term4.marks }}%{% else %}-{% endif %}</td>
+                                        <td class="term-4">{% if subject_data.term4.level != 'N/A' %}{{ subject_data.term4.level }}{% else %}-{% endif %}</td>
+                                        <td class="term-4">{% if subject_data.term4.grade != 'N/A' %}{{ subject_data.term4.grade }}{% else %}-{% endif %}</td>
                                     </tr>
                                     {% endfor %}
+                                    
+                                    <!-- Term Average Row -->
+                                    <tr class="average-row">
+                                        <td class="subject-name"><strong>Term Average</strong></td>
+                                        <td class="term-1">{% if term_averages_list.0.average %}{{ term_averages_list.0.average|floatformat:1 }}%{% else %}-{% endif %}</td>
+                                        <td class="term-1">{% if term_averages_list.0.level != 'N/A' %}{{ term_averages_list.0.level }}{% else %}-{% endif %}</td>
+                                        <td class="term-1">{% if term_averages_list.0.grade != 'N/A' %}{{ term_averages_list.0.grade }}{% else %}-{% endif %}</td>
+                                        
+                                        <td class="term-2">{% if term_averages_list.1.average %}{{ term_averages_list.1.average|floatformat:1 }}%{% else %}-{% endif %}</td>
+                                        <td class="term-2">{% if term_averages_list.1.level != 'N/A' %}{{ term_averages_list.1.level }}{% else %}-{% endif %}</td>
+                                        <td class="term-2">{% if term_averages_list.1.grade != 'N/A' %}{{ term_averages_list.1.grade }}{% else %}-{% endif %}</td>
+                                        
+                                        <td class="term-3">{% if term_averages_list.2.average %}{{ term_averages_list.2.average|floatformat:1 }}%{% else %}-{% endif %}</td>
+                                        <td class="term-3">{% if term_averages_list.2.level != 'N/A' %}{{ term_averages_list.2.level }}{% else %}-{% endif %}</td>
+                                        <td class="term-3">{% if term_averages_list.2.grade != 'N/A' %}{{ term_averages_list.2.grade }}{% else %}-{% endif %}</td>
+                                        
+                                        <td class="term-4">{% if term_averages_list.3.average %}{{ term_averages_list.3.average|floatformat:1 }}%{% else %}-{% endif %}</td>
+                                        <td class="term-4">{% if term_averages_list.3.level != 'N/A' %}{{ term_averages_list.3.level }}{% else %}-{% endif %}</td>
+                                        <td class="term-4">{% if term_averages_list.3.grade != 'N/A' %}{{ term_averages_list.3.grade }}{% else %}-{% endif %}</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
-                        {% endif %}
-                        {% if latest_report.report_file %}
-                        <a href="{{ latest_report.report_file.url }}" class="btn btn-primary btn-block mt-2" target="_blank">
-                            <i class="fas fa-download"></i> Download Report
+                        
+                        <!-- Legend -->
+                        <div class="progress-report-legend">
+                            <p><strong>Grade Scale:</strong> A (80-100%) = Outstanding | B (70-79%) = Very Good | C (60-69%) = Good | D (50-59%) = Satisfactory | E (40-49%) = Pass | F (0-39%) = Fail</p>
+                            <p><strong>Level:</strong> 7=A, 6=B, 5=C, 4=D, 3=E, 2=F, 1=Fail</p>
+                        </div>
+                        
+                        <!-- Download PDF Button -->
+                        <a href="{% url 'progress_report_pdf' %}" class="btn btn-primary btn-block mt-3" target="_blank">
+                            <i class="fas fa-file-pdf"></i> Download Progress Report (PDF)
                         </a>
-                        {% endif %}
+                        
                     {% else %}
                         <div class="empty-state">
                             <i class="fas fa-clipboard"></i>
-                            <p>No progress reports available yet.</p>
+                            <p>No progress report data available.</p>
+                            <p class="small">Complete your academic registration to view your progress report.</p>
                         </div>
                     {% endif %}
-                    <a href="{% url 'examinations' %}" class="btn btn-outline btn-block mt-2">
-                        <i class="fas fa-clipboard-list"></i> View All Exams
+                    
+                    <a href="{% url 'progress_report_pdf' %}" class="btn btn-outline btn-block mt-2" target="_blank">
+                        <i class="fas fa-eye"></i> View Progress Report
                     </a>
                 </div>
             </div>

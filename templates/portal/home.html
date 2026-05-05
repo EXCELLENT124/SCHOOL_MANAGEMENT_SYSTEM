@@ -31,105 +31,148 @@
     <!-- Login Container -->
     <div class="hero-login-container">
         <h3>Access Portal</h3>
-        
-        <!-- Login Type Selection -->
-        <div class="login-type-selector">
-            <label class="login-type-option">
-                <input type="radio" name="login_type" value="learner" checked>
-                <span class="option-label">
-                    <i class="fas fa-user-graduate"></i>
-                    Learner Login
-                </span>
+
+        <!-- Toggle Switch -->
+        <div class="user-type-toggle">
+            <span class="toggle-label learner-label">Learner</span>
+            <label class="switch">
+                <input type="checkbox" id="userTypeToggle">
+                <span class="slider round"></span>
             </label>
-            <label class="login-type-option">
-                <input type="radio" name="login_type" value="teacher">
-                <span class="option-label">
-                    <i class="fas fa-chalkboard-user"></i>
-                    Teacher Login
-                </span>
-            </label>
+            <span class="toggle-label teacher-label">Teacher</span>
         </div>
-        
-        <!-- Login Form -->
-        <form method="post" class="login-form" id="loginForm" action="{% url 'home_login' %}">
-            {% csrf_token %}
-            <input type="hidden" name="login_type" id="loginTypeField" value="learner">
-            
-            <!-- Learner Login Fields -->
-            <div class="login-fields" id="learnerFields">
-                <div class="form-group">
-                    <label for="learner_id">Study Number</label>
-                    <input type="text" id="learner_id" name="study_number" class="form-control" placeholder="Enter your Study Number (e.g., STU12345678)" required>
-                </div>
-                <div class="form-group">
-                    <label for="learner_pin">PIN</label>
-                    <input type="password" id="learner_pin" name="pin" class="form-control" placeholder="Enter your 6-digit PIN" maxlength="6" required>
-                </div>
+
+        <!-- Input Fields -->
+        <div class="login-inputs">
+            <div class="input-group">
+                <label for="userNumber" id="userNumberLabel">Learner/Study Number</label>
+                <input type="text" id="userNumber" class="form-input" placeholder="Enter your learner/study number">
             </div>
-            
-            <!-- Teacher Login Fields -->
-            <div class="login-fields" id="teacherFields" style="display: none;">
-                <div class="form-group">
-                    <label for="teacher_id">Teacher ID Number</label>
-                    <input type="text" id="teacher_id" name="teacher_id" class="form-control" placeholder="Enter your Teacher ID" required>
-                </div>
-                <div class="form-group">
-                    <label for="teacher_pin">PIN</label>
-                    <input type="password" id="teacher_pin" name="teacher_pin" class="form-control" placeholder="Enter your PIN" required>
-                </div>
+            <div class="input-group">
+                <label for="pin">PIN</label>
+                <input type="password" id="pin" class="form-input" placeholder="Enter your PIN">
             </div>
-            
-            <button type="submit" class="btn btn-primary btn-full">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </button>
-        </form>
-        
-        <div class="login-links">
-            <a href="{% url 'apply_admission' %}">Apply for Admission</a>
-            <a href="{% url 'create_pin' %}">Create Learner PIN</a>
-            <a href="{% url 'create_teacher_pin' %}">Create Teacher PIN</a>
         </div>
+
+        <!-- Login Button -->
+        <button type="button" class="btn btn-primary btn-small" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </button>
     </div>
 </section>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const loginTypeRadios = document.querySelectorAll('input[name="login_type"]');
-    const learnerFields = document.getElementById('learnerFields');
-    const teacherFields = document.getElementById('teacherFields');
-    const loginForm = document.getElementById('loginForm');
-    
-    // Function to update form based on selected login type
-    function updateForm(loginType) {
-        if (loginType === 'learner') {
-            learnerFields.style.display = 'block';
-            teacherFields.style.display = 'none';
-            document.getElementById('loginTypeField').value = 'learner';
+    const userTypeToggle = document.getElementById('userTypeToggle');
+    const userNumberLabel = document.getElementById('userNumberLabel');
+    const userNumberInput = document.getElementById('userNumber');
+    const loginBtn = document.getElementById('loginBtn');
+
+    // Toggle user type
+    userTypeToggle.addEventListener('change', function() {
+        const isTeacher = this.checked;
+        
+        if (isTeacher) {
+            userNumberLabel.textContent = 'Teacher Number';
+            userNumberInput.placeholder = 'Enter your teacher number';
         } else {
-            learnerFields.style.display = 'none';
-            teacherFields.style.display = 'block';
-            document.getElementById('loginTypeField').value = 'teacher';
+            userNumberLabel.textContent = 'Learner/Study Number';
+            userNumberInput.placeholder = 'Enter your learner/study number';
         }
-    }
-    
-    // Handle login type switching
-    loginTypeRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            updateForm(this.value);
+    });
+
+    // Login functionality
+    loginBtn.addEventListener('click', function() {
+        const isTeacher = userTypeToggle.checked;
+        const userNumber = userNumberInput.value.trim();
+        const pin = document.getElementById('pin').value.trim();
+
+        console.log('Login attempt:', {
+            isTeacher: isTeacher,
+            userNumber: userNumber,
+            pin: pin ? '***' : 'empty'
+        });
+
+        // Validate inputs
+        if (!userNumber || !pin) {
+            alert('Please enter both user number and PIN');
+            return;
+        }
+
+        // Create form data
+        const formData = new FormData();
+        if (isTeacher) {
+            formData.append('teacher_id', userNumber);
+        } else {
+            formData.append('study_number', userNumber);
+        }
+        formData.append('pin', pin);
+
+        // Determine login URL based on user type
+        const loginUrl = isTeacher ? '/teacher/login/' : '/login/';
+        console.log('Login URL:', loginUrl);
+        
+        // Submit login request
+        fetch(loginUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response OK:', response.ok);
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            console.log('Content-Type:', contentType);
+            
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            } else {
+                // If not JSON, get text and show what we received
+                return response.text().then(text => {
+                    console.log('Non-JSON response:', text.substring(0, 200));
+                    throw new Error('Server returned non-JSON response');
+                });
+            }
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.message || 'Login failed. Please check your credentials.');
+            }
+        })
+        .catch(error => {
+            console.error('Login error details:', error);
+            alert('Login failed: ' + error.message);
         });
     });
-    
-    // Set initial form state based on checked radio button
-    const initialChecked = document.querySelector('input[name="login_type"]:checked');
-    if (initialChecked) {
-        updateForm(initialChecked.value);
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
-    
-    // Handle form submission
-    loginForm.addEventListener('submit', function(e) {
-        // Form will submit to the correct URL based on action attribute
-        return true;
-    });
 });
 </script>
 

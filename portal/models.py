@@ -283,6 +283,31 @@ class Exam(models.Model):
         super().save(*args, **kwargs)
 
 
+class ExamStatus(models.Model):
+    """Track exam participation status for learners by subject."""
+    STATUS_CHOICES = [
+        ('yes', 'Yes'),
+        ('no', 'No'),
+        ('na', 'NA'),
+        ('pending', 'Pending'),
+    ]
+    
+    learner = models.ForeignKey(Learner, on_delete=models.CASCADE, related_name='exam_status')
+    subject = models.CharField(max_length=100)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='no')
+    academic_year = models.IntegerField()
+    term = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['learner', 'subject', 'academic_year', 'term']
+        ordering = ['academic_year', 'term', 'subject']
+    
+    def __str__(self):
+        return f"{self.learner} - {self.subject} ({self.status})"
+
+
 class Registration(models.Model):
     """Academic registration for learners."""
     STATUS_CHOICES = [
@@ -378,6 +403,44 @@ class FinancialInfo(models.Model):
             self.payment_status = 'unpaid'
         
         super().save(*args, **kwargs)
+
+
+class BursaryScholarshipRecord(models.Model):
+    """Detailed records for bursaries and scholarships received by learners."""
+    TYPE_CHOICES = [
+        ('bursary', 'Bursary'),
+        ('scholarship', 'Scholarship'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('suspended', 'Suspended'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    learner = models.ForeignKey(Learner, on_delete=models.CASCADE, related_name='funding_records')
+    record_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    year = models.IntegerField()
+    code = models.CharField(max_length=50)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    amount_allocated = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount_utilized = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    date_created = models.DateField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-year', '-date_created']
+        verbose_name = 'Bursary/Scholarship Record'
+        verbose_name_plural = 'Bursary/Scholarship Records'
+    
+    def __str__(self):
+        return f"{self.learner} - {self.code} ({self.year})"
+    
+    @property
+    def amount_unallocated(self):
+        """Calculate remaining unallocated amount."""
+        return self.amount_allocated - self.amount_utilized
 
 
 class ProgressReport(models.Model):
